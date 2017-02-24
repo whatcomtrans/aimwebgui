@@ -1,0 +1,26 @@
+{
+  "name": "aimwebgui",
+  "version": "1.0.0",
+  "description": "Provides a web app for quickly changing what AdderLink receivers are receiving via the Adder AIM server REST API.",
+  "main": "index.js",
+  "directories": {
+    "doc": "docs"
+  },
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/whatcomtrans/aimwebgui.git"
+  },
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/whatcomtrans/aimwebgui/issues"
+  },
+  "homepage": "https://github.com/whatcomtrans/aimwebgui#readme",
+  "dependencies": {
+    "express": "^4.14.1",
+    "http-proxy": "^1.16.2"
+  }
+}
