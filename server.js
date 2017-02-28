@@ -12,7 +12,8 @@ var httpProxy = require('http-proxy');
 var proxy = httpProxy.createProxyServer({});
 
 app.use(express.static('html'));
-app.use("/bower_components", express.static('bower_components'));
+app.use(express.static('lib'));
+app.use(express.static('bower_components'));
 
 app.get('/api', function (req, res) {
   proxy.web(req, res, { target: aimServer });

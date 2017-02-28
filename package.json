@@ -2,7 +2,7 @@
   "name": "aimwebgui",
   "version": "1.0.0",
   "description": "Provides a web app for quickly changing what AdderLink receivers are receiving via the Adder AIM server REST API.",
-  "main": "webserver.js",
+  "main": "server.js",
   "directories": {
     "doc": "docs"
   },
