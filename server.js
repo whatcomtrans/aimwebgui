@@ -16,9 +16,10 @@ app.use(express.static('lib'));
 app.use(express.static('bower_components'));
 
 app.get('/api', function (req, res) {
+  console.log(req.url);
   proxy.web(req, res, { target: aimServer });
-})
+});
 
 app.listen(listenPort, function () {
   console.log('Example app listening on port ' + listenPort.toString() + '!')
-})
+});
