@@ -1,0 +1,86 @@
+<div class="row" id="presetRow">
+	<div class="col-xs-4"></div>
+	<div class="col-xs-4" id="preset">
+		<button type="button" class="btn btn-info btn-lg" data-toggle="modal" data-target="#presets">Choose Layout Preset</button>
+	</div>
+	<div class="col-xs-4"></div>
+</div>
+<div class="row is-flex">
+	<div class="col-xs-2"></div>
+	<div class="col-xs-2" id="swapLeft">
+		<i class="fa fa-arrows-h fa-6x fa-rotate-315" aria-hidden="true" data-left="bottomMonitor1" data-right="topMonitor"></i>
+	</div>
+	<div class="col-xs-4 channel" id="topMonitor">
+		<span class="channel-desc">AVL | Cameras</span>
+		<i class="fa fa-desktop fa-10x" aria-hidden="true" data-toggle="modal" data-target="#channels"></i>
+	</div>
+	<div class="col-xs-2" id="swapRight">
+		<i class="fa fa-arrows-h fa-6x fa-rotate-45" aria-hidden="true" data-left="topMonitor" data-right="bottomMonitor2"></i>
+	</div>
+	<div class="col-xs-2"></div>
+</div>
+<div class="row is-flex">
+	<div class="col-xs-2"></div>
+	<div class="col-xs-3 channel" id="bottomMonitor1">
+		<div>
+			<i class="fa fa-desktop fa-6x" aria-hidden="true" data-toggle="modal" data-target="#channels"></i>
+			<i class="fa fa-desktop fa-6x" aria-hidden="true" data-toggle="modal" data-target="#channels"></i>
+		</div>
+		<span class="channel-desc">Trapeze OPS</span>
+	</div>
+	<div class="col-xs-2" id="swapAcross">
+		<i class="fa fa-arrows-h fa-6x" aria-hidden="true" data-left="bottomMonitor1" data-right="bottomMonitor2"></i>
+	</div>
+	<div class="col-xs-3 channel" id="bottomMonitor2">
+		<div>
+			<i class="fa fa-desktop fa-6x" aria-hidden="true" data-toggle="modal" data-target="#channels"></i>
+			<i class="fa fa-desktop fa-6x" aria-hidden="true" data-toggle="modal" data-target="#channels"></i>
+		</div>
+		<span class="channel-desc">E-mail</span>
+	</div>
+	<div class="col-xs-2"></div>
+</div>
+<script>
+	//Listener for monitor events
+	var handled = false;
+	$(document).on("touchend click", ".fa-desktop", function(e){
+	    e.stopImmediatePropagation();
+	    if(e.type == "touchend") {
+	        handled = true;
+	        console.log(e.target.parentElement.id);
+	    }
+	    else if(e.type == "click" && !handled) {
+	        console.log(e.target.parentElement.id);
+	    }
+	    else {
+	        handled = false;
+	    }
+	});
+	//Listener for swap arrow events
+	var swapped = false;
+	$(document).on("touchend click", ".fa-arrows-h", function(e){
+	    e.stopImmediatePropagation();
+	    if(e.type == "touchend") {
+	        swapped = true;
+	        console.log(e.target.parentElement.id);
+	        handleIt(e);
+	    }
+	    else if(e.type == "click" && !swapped) {
+	        console.log(e.target.parentElement.id);
+	        handleIt(e);
+	    }
+	    else {
+	        swapped = false;
+	    }
+	});
+	function handleIt(e) {
+		var leftEle = $('#'+e.target.dataset.left+' .channel-desc')[0];
+		var rightEle = $('#'+e.target.dataset.right+' .channel-desc')[0];
+		var left = leftEle.innerHTML
+	    var right = rightEle.innerHTML;
+	    leftEle.innerHTML = right;
+	    rightEle.innerHTML = left;
+	    //TODO: Do whatever call to api to switch the monitor channels here
+
+	}
+</script>
