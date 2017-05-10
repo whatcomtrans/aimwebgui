@@ -12,8 +12,6 @@ var index = require('./routes/index');
 var users = require('./routes/users');
 
 var app = express();
-var httpProxy = require('http-proxy');
-var proxy = httpProxy.createProxyServer({});
 
 // view engine setup
 handlebars = hbs.create({

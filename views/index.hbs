@@ -1,46 +1,81 @@
 <div class="row" id="presetRow">
 	<div class="col-xs-4"></div>
 	<div class="col-xs-4" id="preset">
-		<button type="button" class="btn btn-info btn-lg" data-toggle="modal" data-target="#presets">Choose Layout Preset</button>
+		<button type="button" class="btn btn-slate btn-lg" data-toggle="modal" data-target="#presets">Choose Layout Preset</button>
 	</div>
 	<div class="col-xs-4"></div>
 </div>
 <div class="row is-flex">
 	<div class="col-xs-2"></div>
 	<div class="col-xs-2" id="swapLeft">
-		<i class="fa fa-arrows-h fa-6x fa-rotate-315" aria-hidden="true" data-left="bottomMonitor1" data-right="topMonitor"></i>
+		<i class="fa fa-arrows-h fa-6x fa-rotate-315" aria-hidden="true" data-left="leftMonitor" data-right="topMonitor"></i>
 	</div>
 	<div class="col-xs-4 channel" id="topMonitor">
-		<span class="channel-desc">AVL | Cameras</span>
-		<i class="fa fa-desktop fa-10x" aria-hidden="true" data-toggle="modal" data-target="#channels"></i>
+		<span class="channel-desc" data-id="" data-name="" data-desc=""></span>
+		<i class="fa fa-desktop fa-10x" aria-hidden="true" data-monitor="top" data-toggle="modal" data-target="#channels"></i>
 	</div>
 	<div class="col-xs-2" id="swapRight">
-		<i class="fa fa-arrows-h fa-6x fa-rotate-45" aria-hidden="true" data-left="topMonitor" data-right="bottomMonitor2"></i>
+		<i class="fa fa-arrows-h fa-6x fa-rotate-45" aria-hidden="true" data-left="topMonitor" data-right="rightMonitor"></i>
 	</div>
 	<div class="col-xs-2"></div>
 </div>
 <div class="row is-flex">
 	<div class="col-xs-2"></div>
-	<div class="col-xs-3 channel" id="bottomMonitor1">
+	<div class="col-xs-3 channel" id="leftMonitor">
 		<div>
-			<i class="fa fa-desktop fa-6x" aria-hidden="true" data-toggle="modal" data-target="#channels"></i>
-			<i class="fa fa-desktop fa-6x" aria-hidden="true" data-toggle="modal" data-target="#channels"></i>
+			<i class="fa fa-desktop fa-6x" aria-hidden="true" data-monitor="left" data-toggle="modal" data-target="#channels"></i>
+			<i class="fa fa-desktop fa-6x" aria-hidden="true" data-monitor="left" data-toggle="modal" data-target="#channels"></i>
 		</div>
-		<span class="channel-desc">Trapeze OPS</span>
+		<span class="channel-desc" data-id="" data-name="" data-desc=""></span>
 	</div>
 	<div class="col-xs-2" id="swapAcross">
-		<i class="fa fa-arrows-h fa-6x" aria-hidden="true" data-left="bottomMonitor1" data-right="bottomMonitor2"></i>
+		<i class="fa fa-arrows-h fa-6x" aria-hidden="true" data-left="leftMonitor" data-right="rightMonitor"></i>
 	</div>
-	<div class="col-xs-3 channel" id="bottomMonitor2">
+	<div class="col-xs-3 channel" id="rightMonitor">
 		<div>
-			<i class="fa fa-desktop fa-6x" aria-hidden="true" data-toggle="modal" data-target="#channels"></i>
-			<i class="fa fa-desktop fa-6x" aria-hidden="true" data-toggle="modal" data-target="#channels"></i>
+			<i class="fa fa-desktop fa-6x" aria-hidden="true" data-monitor="right" data-toggle="modal" data-target="#channels"></i>
+			<i class="fa fa-desktop fa-6x" aria-hidden="true" data-monitor="right" data-toggle="modal" data-target="#channels"></i>
 		</div>
-		<span class="channel-desc">E-mail</span>
+		<span class="channel-desc" data-id="" data-name="" data-desc=""></span>
 	</div>
 	<div class="col-xs-2"></div>
 </div>
 <script>
+	//Globals
+	var preset = {};
+	var monitorSetup = {};
+
+	//TODO: Get rid of these variables- Testing purposes only
+	var presets = [{
+		name: "Fixed Route Dispatch",
+		top: "1",
+		left: "2",
+		right: "3"
+	},{
+		name: "Paratransit Dispatch",
+		top: "3",
+		left: "2",
+		right: "1"
+	},{
+		name: "Custom Set",
+		top: "2",
+		left: "3",
+		right: "1"
+	}];
+	var channels = [{
+		name: "DXFS1TLT1",
+		desc: "AVL | Cameras",
+		id: "1"
+	},{
+		name: "DXFS1TLT2",
+		desc: "Trapeze OPS",
+		id: "2"
+	},{
+		name: "DXFS1TLT3",
+		desc: "E-mail",
+		id: "3"
+	}];
+
 	//Listener for monitor events
 	var handled = false;
 	$(document).on("touchend click", ".fa-desktop", function(e){
@@ -127,8 +162,66 @@
 		//Set the clicked element to have "selected" class
 		$(e.target).addClass("selected");
 		//TODO: Code to change the text labels accordingly
-
+		console.log(e.target);
 		//TODO: Whatever code needs to be fired to actually change the monitors
 
+	}
+	//Window on load events
+	$(document).ready(function() {
+		//TODO: Execute query to AIM server for a list of channels and presets
+
+		//TODO: Populate the channels modal with available channels
+		for (i=0;i<channels.length;i++) {
+			var chan = '<li data-id="'+channels[i].id+'" data-name="'+channels[i].name+'" data-desc="'+channels[i].desc+'">'+channels[i].desc+'</li>';
+			$('#channels ul').append(chan);
+		}
+		//TODO: Populate the presets modal with available presets
+		for (i=0;i<presets.length;i++) {
+			var pre = '<li data-name="'+presets[i].name+'" data-top="'+presets[i].top+'" data-left="'+presets[i].left+'" data-right="'+presets[i].right+'">'+presets[i].name+'</li>';
+			$('#presets ul').append(pre);
+		}
+		//TODO: Set a default preset -- first in array for testing
+		preset = presets[0];
+		//TODO: Set the channels according to default preset
+		monitorSetup.top = findChannel(preset.top);
+		monitorSetup.left = findChannel(preset.left);
+		monitorSetup.right = findChannel(preset.right);
+		//For testing, default will be top: AVL, left: OPS, right: E-mail
+			//Assign text labels with appropriate preset values
+			//TOP
+			var topSpan = $('#topMonitor span');
+			topSpan.attr({
+				'data-id': monitorSetup.top.id,
+				'data-name': monitorSetup.top.name,
+				'data-desc': monitorSetup.top.desc
+			});
+			topSpan.html(monitorSetup.top.desc);
+			//LEFT
+			var leftSpan = $('#leftMonitor span');
+			leftSpan.attr({
+				'data-id': monitorSetup.left.id,
+				'data-name': monitorSetup.left.name,
+				'data-desc': monitorSetup.left.desc
+			});
+			leftSpan.html(monitorSetup.left.desc);
+			//RIGHT
+			var rightSpan = $('#rightMonitor span');
+			rightSpan.attr({
+				'data-id': monitorSetup.right.id,
+				'data-name': monitorSetup.right.name,
+				'data-desc': monitorSetup.right.desc
+			});
+			rightSpan.html(monitorSetup.right.desc);
+			//Add selected class to appropriate values in presets modal
+			$('#presets li[data-name="'+preset.name+'"]').addClass('selected');
+	});
+
+	//Find channel helper function
+	function findChannel(e) {
+		for (var i=0;i<channels.length;i++) {
+			if (channels[i].id === e) {
+				return channels[i];
+			}
+		}
 	}
 </script>
