@@ -29,17 +29,11 @@ function AIMServer(serverURL = "/") {
         lastReq = req;
         req.overrideMimeType("text/xml");
 
-        // FOR DEBUG ONLY
-        req.addEventListener("load", function(){
-            console.log(api_response);
-            document.getElementById("output").value = this.responseText;
-        });
-
         // Handle results
         if (typeof api_response_callback === 'function') {
             req.addEventListener("load", function() {
                 lastResp = this;
-                var xmlDoc = this.responseXML;
+                var xmlDoc = lastResp.responseXML;
                 var api_response = x2jsObj.xml2json(lastResp.responseXML).api_response
                 api_response.success = parseInt(api_response.success);
                 api_response.version = parseInt(api_response.version);
@@ -47,6 +41,8 @@ function AIMServer(serverURL = "/") {
                 server.last_api_response = api_response;
                 server.lastTimestamp = api_response.timestamp;
                 api_response_callback(api_response, server);
+                // FOR DEBUG ONLY
+                console.log(api_response);
             });
         }
 
@@ -83,7 +79,7 @@ function AIMServer(serverURL = "/") {
             "password": password
         };
 
-        this.requestFactory("login", version, token, params, function(api_response, server){
+        this.requestFactory("login", version, null, params, function(api_response, server){
             server.loginSuccess = api_response.success;
             server.token = "";
 
