@@ -1,5 +1,9 @@
+var aimServer = 'http://aim.whatcomtrans.net';
+var listenPort = 3001;
 var express = require('express');
 var hbs = require('express-handlebars');
+var http = require('http');
+var httpProxy = require('http-proxy');
 var path = require('path');
 var favicon = require('serve-favicon');
 var logger = require('morgan');
@@ -7,7 +11,7 @@ var cookieParser = require('cookie-parser');
 var bodyParser = require('body-parser');
 
 var index = require('./routes/index');
-var api = require('./routes/api');
+// var api = require('./routes/api');
 
 var app = express();
 
@@ -30,7 +34,18 @@ app.use(bodyParser.urlencoded({ extended: false }));
 app.use(cookieParser());
 app.use(express.static(path.join(__dirname, 'public')));
 
-app.use('/api', api);
+// app.use('/api', api);
+var proxy = httpProxy.createProxyServer({});
+
+app.get('/api', function (req, res) {
+  console.log(req.url);
+  proxy.web(req, res, { target: aimServer });
+});
+
+app.listen(listenPort, function () {
+  console.log('Example app listening on port ' + listenPort.toString() + '!')
+});
+
 app.use('/', index);
 
 // catch 404 and forward to error handler
