@@ -73,6 +73,34 @@
 	        swapped = false;
 	    }
 	});
+	var channeled = false;
+	$(document).on("touchend click", "#channels li", function(e) {
+		e.stopImmediatePropagation();
+	    if(e.type == "touchend") {
+	        channeled = true;
+	        handleChannelChange(e);
+	    }
+	    else if(e.type == "click" && !channeled) {
+	        handleChannelChange(e);
+	    }
+	    else {
+	        channeled = false;
+	    }
+	});
+	var preset = false;
+	$(document).on("touchend click", "#presets li", function(e) {
+		e.stopImmediatePropagation();
+	    if(e.type == "touchend") {
+	        preset = true;
+	        handlePreset(e);
+	    }
+	    else if(e.type == "click" && !preset) {
+	        handlePreset(e);
+	    }
+	    else {
+	        preset = false;
+	    }
+	});
 	function handleIt(e) {
 		var leftEle = $('#'+e.target.dataset.left+' .channel-desc')[0];
 		var rightEle = $('#'+e.target.dataset.right+' .channel-desc')[0];
@@ -81,6 +109,26 @@
 	    leftEle.innerHTML = right;
 	    rightEle.innerHTML = left;
 	    //TODO: Do whatever call to api to switch the monitor channels here
+
+	}
+	function handlePreset(e) {
+		//Remove the "selected" class from any li's in this modal
+		$('#presets li.selected').removeClass("selected");
+		//Set the clicked element to have "selected" class
+		$(e.target).addClass("selected");
+		//TODO: Code to change the text labels accordingly
+
+		//TODO: Whatever code needs to be fired to actually change the monitors
+
+	}
+	function handleChannelChange(e) {
+		//Remove the "selected" class from any li's in this modal
+		$('#channels li.selected').removeClass("selected");
+		//Set the clicked element to have "selected" class
+		$(e.target).addClass("selected");
+		//TODO: Code to change the text labels accordingly
+
+		//TODO: Whatever code needs to be fired to actually change the monitors
 
 	}
 </script>

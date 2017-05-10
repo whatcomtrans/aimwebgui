@@ -107,7 +107,8 @@ i {
     text-align: center;
 }
 .modal-body li:hover,
-.modal-body li:active {
+.modal-body li:active,
+.modal-body li.selected {
     background: rgba(0, 0, 0, 0.1);
     transition: 0.3;
 }
