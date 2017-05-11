@@ -42,7 +42,7 @@ function AIMServer(serverURL = "/") {
                 server.lastTimestamp = api_response.timestamp;
                 api_response_callback(api_response, server);
                 // FOR DEBUG ONLY
-                console.log(api_response);
+                // console.log(api_response);
             });
         }
 

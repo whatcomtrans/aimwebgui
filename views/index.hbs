@@ -48,6 +48,10 @@
 
 	//TODO: Get rid of these variables- Testing purposes only
 	var presets = [{
+		cp_name: "name of channel",
+		cp_description: "description of channel",
+		cp_id: "id of channel, as string"
+	},{
 		name: "Fixed Route Dispatch",
 		top: "1",
 		left: "2",
@@ -63,7 +67,12 @@
 		left: "3",
 		right: "1"
 	}];
+
 	var channels = [{
+		cp_name: "name of channel",
+		cp_description: "description of channel",
+		cp_id: "id of channel, as string",
+	},{
 		name: "DXFS1TLT1",
 		desc: "AVL | Cameras",
 		id: "1"
@@ -75,6 +84,13 @@
 		name: "DXFS1TLT3",
 		desc: "E-mail",
 		id: "3"
+	}];
+	
+	var recivers = [{
+		c_name: "name of current channel",
+		d_name: "name of reciever",
+		d_description: "description of reciever",
+		d_id: "id of reciever, as string"
 	}];
 
 	//Listener for monitor events
@@ -152,7 +168,7 @@
 		$('#presets li.selected').removeClass("selected");
 		//Set the clicked element to have "selected" class
 		$(e.target).addClass("selected");
-		//TODO: Code to change the text labels accordingly
+		//TODO: Code to change the text labels accordingly - Is this needed if the channel changes redraws the lables?
 
 		//TODO: Whatever code needs to be fired to actually change the monitors
 

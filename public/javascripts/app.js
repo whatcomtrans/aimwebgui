@@ -34,94 +34,148 @@ server.refresh_collections = function() {
 })();
 
 
-workspace.swap = function(receiverIdOne, receiverIdTwo) {
-    // Get the current channel of each receiver and change the channel on each
-    var wks = this;
-
-    if (wks.receivers.length > 0) {
-        // We actually have some receivers
-        
-    }
-
-    // Emit channelChanged event
-    var event = new CustomEvent("channelChanged", {
-        detail: true
+workspace.emitEvent = function(type, detail) {
+    var event = new CustomEvent(type, {
+        "detail": detail
     });
-    wks.dispatchEvent(event);
+    dispatchEvent(event);
+};
+
+workspace.CHANNELCHANGED = "CHANNELCHANGED";
+
+workspace.getReceiverByID = function(receiverId) {
+    return workspace.receivers.find(function(rx) {
+        return rx.d_id === receiverId;
+    });
+}
+
+workspace.getChannelsByName = function(channelName) {
+    return workspace.channels.find(function(channel) {
+        return channel.c_name === channelName;
+    });
+}
+
+
+workspace.swap = function(receiverOneId, receiverTwoId) {
+    // Get the current channel of each receiver and change the channel on each
+    
+    if (workspace.receivers.length > 0) {
+        // We actually have some receivers
+        var receiverOneChannelId = workspace.getChannelsByName(workspace.getReceiverByID(receiverOneId).c_name).c_id;
+        var receiverTwoChannelId = workspace.getChannelsByName(workspace.getReceiverByID(receiverTwoId).c_name).c_id;
+
+        workspace.changeChannel(receiverOneId, receiverTwoChannelId);
+        workspace.changeChannel(receiverTwoId, receiverOneChannelId);
+    }
 }
 
 workspace.changeChannel = function(receiverId, channelId) {
     // Change the channel of a specific receiver
-    var wks = this;
-    // Emit channelChanged event
-    var event = new CustomEvent("channelChanged", {
-        detail: true
-    });
-    wks.dispatchEvent(event);
 
+    workspace.connect_channel(null, null, channelId, receiverId, null, null, function() {
+        // Emit channelChanged event, after we have refreshed lists
+        worspace.get(function(success) {
+            workspace.emitEvent(workspace.CHANNELCHANGED, true);
+        });
+    });
 }
 
-workspace.load = function(username, password) {
-    var wks = this;
+workspace.changePreset = function(presetId) {
+    // Change to a preset
+    workspace.connect_preset(null, null, presetId, null, 1, function() {
+        // Emit channelChanged event, after we have refreshed lists
+        worspace.get(function(success) {
+            workspace.emitEvent(workspace.CHANNELCHANGED, true);
+        });
+    });
+}
+
+workspace.LOADED = "LOADED";
+
+workspace.load = function(username, password, callback) {
+    callback = (typeof callback === 'function') ? callback : function() {};
     // Login
-    wks.login(username, password, null, function(success) {
+    workspace.login(username, password, null, function(success) {
         if (success) {
             // Setup polling and/or listeners
             // Pull down list of recievers, channels and presets
-            setInterval(wks.get, 1000 * 5);
-            wks.get();
-            var event = new CustomEvent("loaded", {
-                detail: channels
+            setInterval(workspace.get, 1000 * 5);  // TODO what is the correct timing for this?
+            workspace.get(function() {
+                if (success) {
+                    workspace.emitEvent(workspace.LOADED, channels);
+                }
             });
-            wks.dispatchEvent(event);
+            callback(success);
         } else {
             console.log("Error with login");
             // TODO, what else should happen here
+            callback(success);
         }
     });
     
 }
 
-workspace.get = function() {
+workspace.CHANNELSLISTREADY = "CHANNELSLISTREADY";
+workspace.PRESETSLISTREADY = "PRESETSLISTREADY";
+workspace.RECEIVERLISTREADY = "RECEIVERLISTREADY"
+
+workspace.get = function(callback) {
+    callback = (typeof callback === 'function') ? callback : function() {};
     // Emit channelsReady with array of channels
-    wks.get_channels(null, null, null, null, null, null, null, null, function(success, version, timestamp, errors, page, results_per_page, count_channels, channels){
+    workspace.get_channels(null, null, null, null, null, null, null, null, function(success, version, timestamp, errors, page, results_per_page, count_channels, channels){
         if (success) {
-            wks.channels = channels;
-            var event = new CustomEvent("channelsReady", {
-                detail: channels
-            });
-            wks.dispatchEvent(event);
+            workspace.channels = channels;
+            workspace.emitEvent(workspace.CHANNELSREADY, channels);
+            callback(success, channels);
         } else {
             console.log("Error with get_channels");
             // TODO, what else should happen here
+            callback(success);
         }
     });
     
     // Emit presetsReady with array of presets
-    wks.get_presets(null,null,null,null, function(success, version, timestamp, errors, page, results_per_page, total_presets, count_presets, presets){
+    workspace.get_presets(null,null,null,null, function(success, version, timestamp, errors, page, results_per_page, total_presets, count_presets, presets){
         if (success) {
-            wks.presets = presets;
-            var event = new CustomEvent("presetsReady", {
-                detail: presets
-            });
-            wks.dispatchEvent(event);
+            workspace.presets = presets;
+            workspace.emitEvent(workspace.PRESETSREADY, presets);
+            callback(success, presets);
         } else {
             console.log("Error with get_presets");
             // TODO, what else should happen here
+            callback(success);
         }
     });
 
     // Emit receiversReady with array of receivers
-    wks.get_devices(null, null, 'rx', null ,null,null,null,null,null,null,null,null, function(success, version, timestamp, errors, page, results_per_page, total_devices, count_devices, devices){
+    workspace.get_devices(null, null, 'rx', null ,null,null,null,null,null,null,null,null, function(success, version, timestamp, errors, page, results_per_page, total_devices, count_devices, devices){
         if (success) {
-            wks.receivers = devices;
-            var event = new CustomEvent("receiversReady", {
-                detail: devices
-            });
-            wks.dispatchEvent(event);
+            workspace.receivers = devices;
+            workspace.emitEvent(workspace.RECEIVERLISTREADY, devices);
+            callback(success, receivers);
         } else {
             console.log("Error with get_devices");
             // TODO, what else should happen here
+            callback(success);
         }
     });
 }
+
+// Note, this just update the global variables.  Prior to the event being called,
+// the workspace.channels, workspace.presets, workspace.recivers is updates too.
+// Instead of using the globals, consider using the workspace members?
+
+addEventListener(workspace.CHANNELSREADY, function(e){
+    channels = e.detail;
+});
+
+addEventListener(workspace.PRESETSREADY, function(e){
+    presets = e.detail;
+});
+
+addEventListener(workspace.RECEIVERLISTREADY, function(e){
+    receivers = e.detail;
+    // TODO Update screen with channel descriptions using c_description
+});
+
+workspace.load("D1", "password");
