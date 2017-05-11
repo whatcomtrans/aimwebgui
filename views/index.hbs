@@ -44,6 +44,7 @@
 	//Globals
 	var preset = {};
 	var monitorSetup = {};
+	var trigger;
 
 	//TODO: Get rid of these variables- Testing purposes only
 	var presets = [{
@@ -162,7 +163,16 @@
 		//Set the clicked element to have "selected" class
 		$(e.target).addClass("selected");
 		//TODO: Code to change the text labels accordingly
-		console.log(e.target);
+		$('#channels').modal('hide');
+		var selector = $('#' + trigger.dataset.monitor + 'Monitor');
+		$(selector).find('span').replaceWith('<span class="channel-desc" data-id="'+e.target.dataset.id+'" data-name="'+e.target.dataset.name+'" data-desc="'+e.target.dataset.desc+'">'+e.target.dataset.desc+'</span>');
+		//Update the monitorSetup object to reflect this change
+		var thisMon = $(trigger.parentElement).find('i').attr('data-monitor');
+		monitorSetup[thisMon] = {
+			desc: e.target.dataset.desc,
+			id: e.target.dataset.id,
+			name: e.target.dataset.name
+		};
 		//TODO: Whatever code needs to be fired to actually change the monitors
 
 	}
