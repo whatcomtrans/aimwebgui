@@ -1,5 +1,4 @@
 var aimServer = 'http://aim.whatcomtrans.net';
-var listenPort = 3001;
 var express = require('express');
 var hbs = require('express-handlebars');
 var http = require('http');
@@ -38,10 +37,6 @@ var proxy = httpProxy.createProxyServer({});
 app.get('/api', function (req, res) {
   console.log(req.url);
   proxy.web(req, res, { target: aimServer });
-});
-
-app.listen(listenPort, function () {
-  console.log('Example app listening on port ' + listenPort.toString() + '!')
 });
 
 app.use('/', index);
