@@ -151,6 +151,11 @@ workspace.get = function(callback) {
     // Emit receiversReady with array of receivers
     workspace.get_devices(null, null, 'rx', null ,null,null,null,null,null,null,null,null, function(success, version, timestamp, errors, page, results_per_page, total_devices, count_devices, devices){
         if (success) {
+            // TODO Add channel details
+            // workspace.getChannelsByName(receiver.c_name)
+            devices.forEach(function callback(receiver, index, array) {
+                receiver.channel = workspace.getChannelsByName(receiver.c_name);
+            });
             workspace.receivers = devices;
             workspace.emitEvent(workspace.RECEIVERLISTREADY, devices);
             callback(success, receivers);
