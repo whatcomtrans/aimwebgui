@@ -122,7 +122,7 @@ workspace.RECEIVERLISTREADY = "RECEIVERLISTREADY"
 workspace.get = function(callback) {
     callback = (typeof callback === 'function') ? callback : function() {};
     // Emit channelsReady with array of channels
-    workspace.get_channels(null, null, null, null, null, null, null, null, function(success, version, timestamp, errors, page, results_per_page, count_channels, channels){
+    workspace.get_channels(null, null, null, null, null, null, null, null, null, function(success, version, timestamp, errors, page, results_per_page, count_channels, channels){
         if (success) {
             workspace.channels = channels;
             workspace.emitEvent(workspace.CHANNELSREADY, channels);
