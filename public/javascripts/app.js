@@ -185,6 +185,7 @@ addEventListener(workspace.RECEIVERLISTREADY, function(e){
     receivers = e.detail;
     initCheck();
     // TODO Update screen with channel descriptions using c_description
+    updateMonitors();
 });
 
 function initCheck() {
