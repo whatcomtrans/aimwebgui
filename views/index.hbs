@@ -151,53 +151,16 @@
 	//Window on load events
 	// $(document).ready(function() {
 	function initPage() {
-		//TODO: Populate the channels modal with available channels
-		for (i=0;i<channels.length;i++) {
-			var chan = '<li data-id="'+channels[i].c_id+'" data-name="'+channels[i].c_name+'" data-desc="'+channels[i].c_desc+'">'+channels[i].c_desc+'</li>';
-			$('#channels ul').append(chan);
-		}
-		//TODO: Populate the presets modal with available presets
-		for (i=0;i<presets.length;i++) {
-			var pre = '<li data-name="'+presets[i].name+'" data-top="'+presets[i].top+'" data-left="'+presets[i].left+'" data-right="'+presets[i].right+'">'+presets[i].name+'</li>';
-			$('#presets ul').append(pre);
-		}
+		updateChannels();
+		updatePresets();
 		//TODO: Set a default preset -- first in array for testing
 		preset = presets[0];
-		console.log(presets);
+		// console.log(presets);
 		//TODO: Set the channels according to default preset
 		workspace.changePreset(preset.cp_id);
 
-		monitorSetup.top = findChannel(preset.top);
-		monitorSetup.left = findChannel(preset.left);
-		monitorSetup.right = findChannel(preset.right);
-		//For testing, default will be top: AVL, left: OPS, right: E-mail
-			//Assign text labels with appropriate preset values
-			//TOP
-			var topSpan = $('#topMonitor span');
-			topSpan.attr({
-				'data-id': monitorSetup.top.id,
-				'data-name': monitorSetup.top.name,
-				'data-desc': monitorSetup.top.desc
-			});
-			topSpan.html(monitorSetup.top.desc);
-			//LEFT
-			var leftSpan = $('#leftMonitor span');
-			leftSpan.attr({
-				'data-id': monitorSetup.left.id,
-				'data-name': monitorSetup.left.name,
-				'data-desc': monitorSetup.left.desc
-			});
-			leftSpan.html(monitorSetup.left.desc);
-			//RIGHT
-			var rightSpan = $('#rightMonitor span');
-			rightSpan.attr({
-				'data-id': monitorSetup.right.id,
-				'data-name': monitorSetup.right.name,
-				'data-desc': monitorSetup.right.desc
-			});
-			rightSpan.html(monitorSetup.right.desc);
-			//Add selected class to appropriate values in presets modal
-			$('#presets li[data-name="'+preset.name+'"]').addClass('selected');
+		//Add selected class to appropriate values in presets modal
+		
 	// });
 	}
 
@@ -207,6 +170,73 @@
 			if (channels[i].id === e) {
 				return channels[i];
 			}
+		}
+	}
+
+	function updateChannels() {
+		$('#channels ul li').remove();
+		for (i=0;i<channels.length;i++) {
+			console.log(channels[i].c_name);
+			var chan = '<li data-id="'+channels[i].c_id+'" data-name="'+channels[i].c_name+'" data-desc="'+channels[i].c_description+'">'+channels[i].c_description+'</li>';
+			$('#channels ul').append(chan);
+		}
+	}
+
+	function updatePresets() {
+		$('#presets ul li').remove();
+		for (i=0;i<presets.length;i++) {
+			var pre = '<li data-name="'+presets[i].c_name+'" data-top="'+presets[i].top+'" data-left="'+presets[i].left+'" data-right="'+presets[i].right+'">'+presets[i].c_name+'</li>';
+			$('#presets ul').append(pre);
+		}
+		$('#presets li[data-name="'+preset.name+'"]').addClass('selected');
+	}
+
+	function updateMonitors() {
+
+		if (receivers[0]) {
+			monitorSetup.top = {
+				id: receivers[0].channel.c_id,
+				name: receivers[0].channel.c_name,
+				desc: receivers[0].channel.c_description
+			};
+			//TOP
+			var topSpan = $('#topMonitor span');
+			topSpan.attr({
+				'data-id': monitorSetup.top.id,
+				'data-name': monitorSetup.top.name,
+				'data-desc': monitorSetup.top.desc
+			});
+			topSpan.html(monitorSetup.top.desc);
+		}
+		if (receivers[1]) {
+			monitorSetup.left = {
+				id: receivers[1].channel.c_id,
+				name: receivers[1].channel.c_name,
+				desc: receivers[1].channel.c_description
+			};
+			//LEFT
+			var leftSpan = $('#leftMonitor span');
+			leftSpan.attr({
+				'data-id': monitorSetup.left.id,
+				'data-name': monitorSetup.left.name,
+				'data-desc': monitorSetup.left.desc
+			});
+			leftSpan.html(monitorSetup.left.desc);
+		}
+		if (receivers[2]) {
+			monitorSetup.right = {
+				id: receivers[2].channel.c_id,
+				name: receivers[2].channel.c_name,
+				desc: receivers[2].channel.c_description
+			};
+			//RIGHT
+			var rightSpan = $('#rightMonitor span');
+			rightSpan.attr({
+				'data-id': monitorSetup.right.id,
+				'data-name': monitorSetup.right.name,
+				'data-desc': monitorSetup.right.desc
+			});
+			rightSpan.html(monitorSetup.right.desc);
 		}
 	}
 </script>

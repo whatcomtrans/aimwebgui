@@ -174,17 +174,21 @@ workspace.get = function(callback) {
 addEventListener(workspace.CHANNELSREADY, function(e){
     channels = e.detail;
     initCheck();
+    updateChannels();
 });
 
 addEventListener(workspace.PRESETSREADY, function(e){
     presets = e.detail;
     initCheck();
+    updatePresets();
 });
 
 addEventListener(workspace.RECEIVERLISTREADY, function(e){
     receivers = e.detail;
     initCheck();
     // TODO Update screen with channel descriptions using c_description
+    // updateChannels();
+    // updatePresets();
     updateMonitors();
 });
 
