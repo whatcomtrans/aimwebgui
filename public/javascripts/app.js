@@ -1,4 +1,5 @@
 var workspace = new AIMServer();
+var init = false;
 
 /*
 server.refresh_collections = function() {
@@ -117,7 +118,7 @@ workspace.load = function(username, password, callback) {
 
 workspace.CHANNELSLISTREADY = "CHANNELSLISTREADY";
 workspace.PRESETSLISTREADY = "PRESETSLISTREADY";
-workspace.RECEIVERLISTREADY = "RECEIVERLISTREADY"
+workspace.RECEIVERLISTREADY = "RECEIVERLISTREADY";
 
 workspace.get = function(callback) {
     callback = (typeof callback === 'function') ? callback : function() {};
@@ -167,15 +168,24 @@ workspace.get = function(callback) {
 
 addEventListener(workspace.CHANNELSREADY, function(e){
     channels = e.detail;
+    initCheck();
 });
 
 addEventListener(workspace.PRESETSREADY, function(e){
     presets = e.detail;
+    initCheck();
 });
 
 addEventListener(workspace.RECEIVERLISTREADY, function(e){
     receivers = e.detail;
+    initCheck();
     // TODO Update screen with channel descriptions using c_description
 });
 
+function initCheck() {
+    if (channels&&presets&&receivers&&!init) {
+        init = true;
+        initPage();
+    }
+}
 workspace.load("D1", "password");

@@ -45,53 +45,9 @@
 	var preset = {};
 	var monitorSetup = {};
 	var trigger;
-
-	//TODO: Get rid of these variables- Testing purposes only
-	var presets = [{
-		cp_name: "name of channel",
-		cp_description: "description of channel",
-		cp_id: "id of channel, as string"
-	},{
-		name: "Fixed Route Dispatch",
-		top: "1",
-		left: "2",
-		right: "3"
-	},{
-		name: "Paratransit Dispatch",
-		top: "3",
-		left: "2",
-		right: "1"
-	},{
-		name: "Custom Set",
-		top: "2",
-		left: "3",
-		right: "1"
-	}];
-
-	var channels = [{
-		cp_name: "name of channel",
-		cp_description: "description of channel",
-		cp_id: "id of channel, as string",
-	},{
-		name: "DXFS1TLT1",
-		desc: "AVL | Cameras",
-		id: "1"
-	},{
-		name: "DXFS1TLT2",
-		desc: "Trapeze OPS",
-		id: "2"
-	},{
-		name: "DXFS1TLT3",
-		desc: "E-mail",
-		id: "3"
-	}];
-	
-	var recivers = [{
-		c_name: "name of current channel",
-		d_name: "name of reciever",
-		d_description: "description of reciever",
-		d_id: "id of reciever, as string"
-	}];
+	var presets = false;
+	var channels = false;
+	var receivers = false;
 
 	//Listener for monitor events
 	var handled = false;
@@ -193,12 +149,11 @@
 
 	}
 	//Window on load events
-	$(document).ready(function() {
-		//TODO: Execute query to AIM server for a list of channels and presets
-
+	// $(document).ready(function() {
+	function initPage() {
 		//TODO: Populate the channels modal with available channels
 		for (i=0;i<channels.length;i++) {
-			var chan = '<li data-id="'+channels[i].id+'" data-name="'+channels[i].name+'" data-desc="'+channels[i].desc+'">'+channels[i].desc+'</li>';
+			var chan = '<li data-id="'+channels[i].c_id+'" data-name="'+channels[i].c_name+'" data-desc="'+channels[i].c_desc+'">'+channels[i].c_desc+'</li>';
 			$('#channels ul').append(chan);
 		}
 		//TODO: Populate the presets modal with available presets
@@ -208,7 +163,10 @@
 		}
 		//TODO: Set a default preset -- first in array for testing
 		preset = presets[0];
+		console.log(presets);
 		//TODO: Set the channels according to default preset
+		workspace.changePreset(preset.cp_id);
+
 		monitorSetup.top = findChannel(preset.top);
 		monitorSetup.left = findChannel(preset.left);
 		monitorSetup.right = findChannel(preset.right);
@@ -240,7 +198,8 @@
 			rightSpan.html(monitorSetup.right.desc);
 			//Add selected class to appropriate values in presets modal
 			$('#presets li[data-name="'+preset.name+'"]').addClass('selected');
-	});
+	// });
+	}
 
 	//Find channel helper function
 	function findChannel(e) {
