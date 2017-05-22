@@ -126,7 +126,7 @@ workspace.get = function(callback) {
     workspace.get_channels(null, null, null, null, null, null, null, null, null, function(success, version, timestamp, errors, page, results_per_page, count_channels, channels){
         if (success) {
             workspace.channels = channels;
-            workspace.emitEvent(workspace.CHANNELSREADY, channels);
+            workspace.emitEvent(workspace.CHANNELSLISTREADY, channels);
             callback(success, channels);
         } else {
             console.log("Error with get_channels");
@@ -139,7 +139,7 @@ workspace.get = function(callback) {
     workspace.get_presets(null,null,null,null, function(success, version, timestamp, errors, page, results_per_page, total_presets, count_presets, presets){
         if (success) {
             workspace.presets = presets;
-            workspace.emitEvent(workspace.PRESETSREADY, presets);
+            workspace.emitEvent(workspace.PRESETSLISTREADY, presets);
             callback(success, presets);
         } else {
             console.log("Error with get_presets");
@@ -171,13 +171,13 @@ workspace.get = function(callback) {
 // the workspace.channels, workspace.presets, workspace.recivers is updates too.
 // Instead of using the globals, consider using the workspace members?
 
-addEventListener(workspace.CHANNELSREADY, function(e){
+addEventListener(workspace.CHANNELSLISTREADY, function(e){
     channels = e.detail;
     initCheck();
     updateChannels();
 });
 
-addEventListener(workspace.PRESETSREADY, function(e){
+addEventListener(workspace.PRESETSLISTREADY, function(e){
     presets = e.detail;
     initCheck();
     updatePresets();
