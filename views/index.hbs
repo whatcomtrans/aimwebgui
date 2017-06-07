@@ -91,18 +91,18 @@
 	        channeled = false;
 	    }
 	});
-	var preset = false;
+	var pre = false;
 	$(document).on("touchend click", "#presets li", function(e) {
 		e.stopImmediatePropagation();
 	    if(e.type == "touchend") {
-	        preset = true;
+	        pre = true;
 	        handlePreset(e);
 	    }
-	    else if(e.type == "click" && !preset) {
+	    else if(e.type == "click" && !pre) {
 	        handlePreset(e);
 	    }
 	    else {
-	        preset = false;
+	        pre = false;
 	    }
 	});
 	function handleIt(e) {
@@ -125,14 +125,15 @@
 		$('#presets li.selected').removeClass("selected");
 		//Set the clicked element to have "selected" class
 		$(e.target).addClass("selected");
-		//TODO: Code to change the text labels accordingly - Is this needed if the channel changes redraws the lables?
-
-		//TODO: Whatever code needs to be fired to actually change the monitors
-
+		$('#presets').modal('hide');
+		//Change the preset
+		workspace.changePreset(e.target.dataset.name);
 	}
 	function handleChannelChange(e) {
-		//Remove the "selected" class from any li's in this modal
+		//Remove the "selected" class from any li's in modals
 		$('#channels li.selected').removeClass("selected");
+		// $('#presets li.selected').removeClass("selected");
+		preset = undefined;
 		//Set the clicked element to have "selected" class
 		$(e.target).addClass("selected");
 		//Change the text labels accordingly
@@ -146,7 +147,7 @@
 		monitorSetup[thisMon].id = e.target.dataset.id;
 		monitorSetup[thisMon].name = e.target.dataset.name;
 
-		//TODO: Whatever code needs to be fired to actually change the monitors
+		//Change the monitors
 		workspace.changeChannel(monitorSetup[thisMon].rxid, workspace.getChannelsByName(monitorSetup[thisMon].name).c_id);
 	}
 	//Window on load events
@@ -154,15 +155,11 @@
 	function initPage() {
 		updateChannels();
 		updatePresets();
-		//TODO: Set a default preset -- first in array for testing
-		preset = presets[0];
-		// console.log(presets);
-		//TODO: Set the channels according to default preset
-		//workspace.changePreset(preset.cp_id);
+		//TODO QUESTION: Set a default preset?
+		// preset = presets[0];
 
-		//Add selected class to appropriate values in presets modal
-		
-	// });
+		//TODO QUESTION: Do we want to let the monitor come up as left or set default preset?
+		// workspace.changePreset(preset.cp_id);
 	}
 
 	//Find channel helper function
@@ -195,39 +192,27 @@
 	function updatePresets() {
 		$('#presets ul li').remove();
 		for (i=0;i<presets.length;i++) {
-			var pre = '<li data-name="'+presets[i].cp_id+'">'+presets[i].cp_name+'</li>';
+			if (typeof preset !== 'undefined') {
+				if (preset.cp_id===presets[i].cp_id) {
+					var pre = '<li class="selected" data-name="'+presets[i].cp_id+'">'+presets[i].cp_name+'</li>';
+				} else {
+					var pre = '<li data-name="'+presets[i].cp_id+'">'+presets[i].cp_name+'</li>';
+				}
+			} else {
+				var pre = '<li data-name="'+presets[i].cp_id+'">'+presets[i].cp_name+'</li>';
+			}
 			$('#presets ul').append(pre);
 		}
 	}
 
 	function updateMonitors() {
 		if (receivers[0]) {
-			monitorSetup.top={};
-			monitorSetup.top.rxid = receivers[0].d_id;
-			if (receivers[0].channel) {
-				monitorSetup.top.id = receivers[0].channel.c_id;
-				monitorSetup.top.name = receivers[0].channel.c_name;
-				monitorSetup.top.desc = receivers[0].channel.c_description;
-			} else {
-				//some kind of fallback here?
-			}
-			//TOP
-			var topSpan = $('#topMonitor span');
-			topSpan.attr({
-				'data-rxid': monitorSetup.top.rxid,
-				'data-id': monitorSetup.top.id,
-				'data-name': monitorSetup.top.name,
-				'data-desc': monitorSetup.top.desc
-			});
-			topSpan.html(monitorSetup.top.desc);
-		}
-		if (receivers[1]) {
 			monitorSetup.left={};
-			monitorSetup.left.rxid = receivers[1].d_id;
-			if (receivers[1].channel) {
-				monitorSetup.left.id = receivers[1].channel.c_id;
-				monitorSetup.left.name = receivers[1].channel.c_name;
-				monitorSetup.left.desc = receivers[1].channel.c_description;
+			monitorSetup.left.rxid = receivers[0].d_id;
+			if (receivers[0].channel) {
+				monitorSetup.left.id = receivers[0].channel.c_id;
+				monitorSetup.left.name = receivers[0].channel.c_name;
+				monitorSetup.left.desc = receivers[0].channel.c_description;
 			} else {
 				//some kind of fallback here?
 			}
@@ -241,13 +226,13 @@
 			});
 			leftSpan.html(monitorSetup.left.desc);
 		}
-		if (receivers[2]) {
+		if (receivers[1]) {
 			monitorSetup.right={};
-			monitorSetup.right.rxid = receivers[2].d_id;
-			if (receivers[2].channel) {
-				monitorSetup.right.id = receivers[2].channel.c_id;
-				monitorSetup.right.name = receivers[2].channel.c_name;
-				monitorSetup.right.desc = receivers[2].channel.c_description;
+			monitorSetup.right.rxid = receivers[1].d_id;
+			if (receivers[1].channel) {
+				monitorSetup.right.id = receivers[1].channel.c_id;
+				monitorSetup.right.name = receivers[1].channel.c_name;
+				monitorSetup.right.desc = receivers[1].channel.c_description;
 			} else {
 				//some kind of fallback here?
 			}
@@ -261,47 +246,25 @@
 			});
 			rightSpan.html(monitorSetup.right.desc);
 		}
-		// if (receivers[1]) {
-		// 	if (receivers[1].channel) {
-		// 		monitorSetup.left = {
-		// 			rxid: receivers[1].d_id,
-		// 			id: receivers[1].channel.c_id,
-		// 			name: receivers[1].channel.c_name,
-		// 			desc: receivers[1].channel.c_description
-		// 		};
-		// 		//LEFT
-		// 		var leftSpan = $('#leftMonitor span');
-		// 		leftSpan.attr({
-		// 			'data-rxid': monitorSetup.left.rxid,
-		// 			'data-id': monitorSetup.left.id,
-		// 			'data-name': monitorSetup.left.name,
-		// 			'data-desc': monitorSetup.left.desc
-		// 		});
-		// 		leftSpan.html(monitorSetup.left.desc);
-		// 	} else {
-		// 		//fallback- get the channel? leave it unassigned?
-		// 	}
-		// }
-		// if (receivers[2]) {
-		// 	if (receivers[0].channel) {
-		// 		monitorSetup.right = {
-		// 			rxid: receivers[2].d_id,
-		// 			id: receivers[2].channel.c_id,
-		// 			name: receivers[2].channel.c_name,
-		// 			desc: receivers[2].channel.c_description
-		// 		};
-		// 		//RIGHT
-		// 		var rightSpan = $('#rightMonitor span');
-		// 		rightSpan.attr({
-		// 			'data-rxid': monitorSetup.right.rxid,
-		// 			'data-id': monitorSetup.right.id,
-		// 			'data-name': monitorSetup.right.name,
-		// 			'data-desc': monitorSetup.right.desc
-		// 		});
-		// 		rightSpan.html(monitorSetup.right.desc);
-		// 	} else {
-		// 		//fallback?
-		// 	}
-		// }
+		if (receivers[2]) {
+			monitorSetup.top={};
+			monitorSetup.top.rxid = receivers[2].d_id;
+			if (receivers[2].channel) {
+				monitorSetup.top.id = receivers[2].channel.c_id;
+				monitorSetup.top.name = receivers[2].channel.c_name;
+				monitorSetup.top.desc = receivers[2].channel.c_description;
+			} else {
+				//some kind of fallback here?
+			}
+			//TOP
+			var topSpan = $('#topMonitor span');
+			topSpan.attr({
+				'data-rxid': monitorSetup.top.rxid,
+				'data-id': monitorSetup.top.id,
+				'data-name': monitorSetup.top.name,
+				'data-desc': monitorSetup.top.desc
+			});
+			topSpan.html(monitorSetup.top.desc);
+		}
 	}
 </script>

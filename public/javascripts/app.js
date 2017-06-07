@@ -56,7 +56,7 @@ workspace.getChannelsByName = function(channelName) {
     });
 }
 
-
+//wasnt working so i wrote around it, dont need this anymore
 workspace.swap = function(receiverOneId, receiverTwoId) {
     // Get the current channel of each receiver and change the channel on each
     
@@ -83,9 +83,14 @@ workspace.changeChannel = function(receiverId, channelId) {
 
 workspace.changePreset = function(presetId) {
     // Change to a preset
+    for (var i=0;i<presets.length;i++) {
+        if (presetId==presets[i].cp_id) {
+            preset = presets[i];
+        }
+    }
     workspace.connect_preset(null, null, presetId, null, 1, function() {
         // Emit channelChanged event, after we have refreshed lists
-        worspace.get(function(success) {
+        workspace.get(function(success) {
             workspace.emitEvent(workspace.CHANNELCHANGED, true);
         });
     });
@@ -168,8 +173,7 @@ workspace.get = function(callback) {
 }
 
 // Note, this just update the global variables.  Prior to the event being called,
-// the workspace.channels, workspace.presets, workspace.recivers is updates too.
-// Instead of using the globals, consider using the workspace members?
+// the workspace.channels, workspace.presets, workspace.recivers is updated too.
 
 addEventListener(workspace.CHANNELSLISTREADY, function(e){
     channels = e.detail;
@@ -186,7 +190,11 @@ addEventListener(workspace.PRESETSLISTREADY, function(e){
 addEventListener(workspace.RECEIVERLISTREADY, function(e){
     receivers = e.detail;
     initCheck();
-    // TODO Update screen with channel descriptions using c_description
+    updateMonitors();
+});
+
+addEventListener(workspace.CHANNELCHANGED, function(e) {
+    console.log(e);
     updateMonitors();
 });
 

@@ -19,4 +19,14 @@
 </div>
 <script>
   $('#presets').modal({ show: false});
+  $('#presets').on('show.bs.modal', function (e) {
+    //Remove selected attribute from all li in modal
+    // $('#presets li').removeClass('selected');
+    // trigger = e.relatedTarget;
+    // var mon = monitorSetup[trigger.dataset.monitor];
+    //Set the selected li based on which item triggered the modal
+    // if (mon) {
+      // $('#channels li[data-id="'+mon.id+'"]').addClass('selected');
+    // }
+});
 </script>
