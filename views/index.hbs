@@ -55,10 +55,8 @@
 	    e.stopImmediatePropagation();
 	    if(e.type == "touchend") {
 	        handled = true;
-	        console.log(e.target.parentElement.id);
 	    }
 	    else if(e.type == "click" && !handled) {
-	        console.log(e.target.parentElement.id);
 	    }
 	    else {
 	        handled = false;
@@ -70,11 +68,9 @@
 	    e.stopImmediatePropagation();
 	    if(e.type == "touchend") {
 	        swapped = true;
-	        console.log(e.target.parentElement.id);
 	        handleIt(e);
 	    }
 	    else if(e.type == "click" && !swapped) {
-	        console.log(e.target.parentElement.id);
 	        handleIt(e);
 	    }
 	    else {
@@ -116,8 +112,13 @@
 	    var right = rightEle.innerHTML;
 	    leftEle.innerHTML = right;
 	    rightEle.innerHTML = left;
-	    //TODO: Do whatever call to api to switch the monitor channels here
-
+	    //call to api to switch the monitor channels here
+	    var receiverOneId = $(leftEle).attr('data-rxid');
+	    var receiverTwoId = $(rightEle).attr('data-rxid');
+	    var channelOneId = $(leftEle).attr('data-id');
+	    var channelTwoId = $(rightEle).attr('data-id');
+	    workspace.changeChannel(receiverOneId, channelTwoId);
+	    workspace.changeChannel(receiverTwoId, channelOneId);
 	}
 	function handlePreset(e) {
 		//Remove the "selected" class from any li's in this modal
@@ -134,19 +135,19 @@
 		$('#channels li.selected').removeClass("selected");
 		//Set the clicked element to have "selected" class
 		$(e.target).addClass("selected");
-		//TODO: Code to change the text labels accordingly
+		//Change the text labels accordingly
 		$('#channels').modal('hide');
 		var selector = $('#' + trigger.dataset.monitor + 'Monitor');
-		$(selector).find('span').replaceWith('<span class="channel-desc" data-id="'+e.target.dataset.id+'" data-name="'+e.target.dataset.name+'" data-desc="'+e.target.dataset.desc+'">'+e.target.dataset.desc+'</span>');
+		$(selector).find('span').replaceWith('<span class="channel-desc" data-rxid="" data-id="'+e.target.dataset.id+'" data-name="'+e.target.dataset.name+'" data-desc="'+e.target.dataset.desc+'">'+e.target.dataset.desc+'</span>');
 		//Update the monitorSetup object to reflect this change
 		var thisMon = $(trigger.parentElement).find('i').attr('data-monitor');
-		monitorSetup[thisMon] = {
-			desc: e.target.dataset.desc,
-			id: e.target.dataset.id,
-			name: e.target.dataset.name
-		};
-		//TODO: Whatever code needs to be fired to actually change the monitors
+		
+		monitorSetup[thisMon].desc = e.target.dataset.desc;
+		monitorSetup[thisMon].id = e.target.dataset.id;
+		monitorSetup[thisMon].name = e.target.dataset.name;
 
+		//TODO: Whatever code needs to be fired to actually change the monitors
+		workspace.changeChannel(monitorSetup[thisMon].rxid, workspace.getChannelsByName(monitorSetup[thisMon].name).c_id);
 	}
 	//Window on load events
 	// $(document).ready(function() {
@@ -157,7 +158,7 @@
 		preset = presets[0];
 		// console.log(presets);
 		//TODO: Set the channels according to default preset
-		workspace.changePreset(preset.cp_id);
+		//workspace.changePreset(preset.cp_id);
 
 		//Add selected class to appropriate values in presets modal
 		
@@ -174,11 +175,19 @@
 	}
 
 	function updateChannels() {
-		console.log('updating channels...');
+		var sel = $('#channels .selected');
 		$('#channels ul li').remove();
 		for (i=0;i<channels.length;i++) {
-			console.log(channels[i].c_name);
-			var chan = '<li data-id="'+channels[i].c_id+'" data-name="'+channels[i].c_name+'" data-desc="'+channels[i].c_description+'">'+channels[i].c_description+'</li>';
+			if (sel.length>0) {
+				selId = sel[0].dataset.id;
+				if (channels[i].c_id===selId) {
+					var chan = '<li class="selected" data-id="'+channels[i].c_id+'" data-name="'+channels[i].c_name+'" data-desc="'+channels[i].c_description+'">'+channels[i].c_description+'</li>';
+				} else {
+					var chan = '<li data-id="'+channels[i].c_id+'" data-name="'+channels[i].c_name+'" data-desc="'+channels[i].c_description+'">'+channels[i].c_description+'</li>';
+				}
+			} else {
+				var chan = '<li data-id="'+channels[i].c_id+'" data-name="'+channels[i].c_name+'" data-desc="'+channels[i].c_description+'">'+channels[i].c_description+'</li>';
+			}
 			$('#channels ul').append(chan);
 		}
 	}
@@ -186,23 +195,26 @@
 	function updatePresets() {
 		$('#presets ul li').remove();
 		for (i=0;i<presets.length;i++) {
-			var pre = '<li data-name="'+presets[i].c_name+'" data-top="'+presets[i].top+'" data-left="'+presets[i].left+'" data-right="'+presets[i].right+'">'+presets[i].c_name+'</li>';
+			var pre = '<li data-name="'+presets[i].cp_id+'">'+presets[i].cp_name+'</li>';
 			$('#presets ul').append(pre);
 		}
-		$('#presets li[data-name="'+preset.name+'"]').addClass('selected');
 	}
 
 	function updateMonitors() {
-
 		if (receivers[0]) {
-			monitorSetup.top = {
-				id: receivers[0].channel.c_id,
-				name: receivers[0].channel.c_name,
-				desc: receivers[0].channel.c_description
-			};
+			monitorSetup.top={};
+			monitorSetup.top.rxid = receivers[0].d_id;
+			if (receivers[0].channel) {
+				monitorSetup.top.id = receivers[0].channel.c_id;
+				monitorSetup.top.name = receivers[0].channel.c_name;
+				monitorSetup.top.desc = receivers[0].channel.c_description;
+			} else {
+				//some kind of fallback here?
+			}
 			//TOP
 			var topSpan = $('#topMonitor span');
 			topSpan.attr({
+				'data-rxid': monitorSetup.top.rxid,
 				'data-id': monitorSetup.top.id,
 				'data-name': monitorSetup.top.name,
 				'data-desc': monitorSetup.top.desc
@@ -210,14 +222,19 @@
 			topSpan.html(monitorSetup.top.desc);
 		}
 		if (receivers[1]) {
-			monitorSetup.left = {
-				id: receivers[1].channel.c_id,
-				name: receivers[1].channel.c_name,
-				desc: receivers[1].channel.c_description
-			};
+			monitorSetup.left={};
+			monitorSetup.left.rxid = receivers[1].d_id;
+			if (receivers[1].channel) {
+				monitorSetup.left.id = receivers[1].channel.c_id;
+				monitorSetup.left.name = receivers[1].channel.c_name;
+				monitorSetup.left.desc = receivers[1].channel.c_description;
+			} else {
+				//some kind of fallback here?
+			}
 			//LEFT
 			var leftSpan = $('#leftMonitor span');
 			leftSpan.attr({
+				'data-rxid': monitorSetup.left.rxid,
 				'data-id': monitorSetup.left.id,
 				'data-name': monitorSetup.left.name,
 				'data-desc': monitorSetup.left.desc
@@ -225,19 +242,66 @@
 			leftSpan.html(monitorSetup.left.desc);
 		}
 		if (receivers[2]) {
-			monitorSetup.right = {
-				id: receivers[2].channel.c_id,
-				name: receivers[2].channel.c_name,
-				desc: receivers[2].channel.c_description
-			};
+			monitorSetup.right={};
+			monitorSetup.right.rxid = receivers[2].d_id;
+			if (receivers[2].channel) {
+				monitorSetup.right.id = receivers[2].channel.c_id;
+				monitorSetup.right.name = receivers[2].channel.c_name;
+				monitorSetup.right.desc = receivers[2].channel.c_description;
+			} else {
+				//some kind of fallback here?
+			}
 			//RIGHT
 			var rightSpan = $('#rightMonitor span');
 			rightSpan.attr({
+				'data-rxid': monitorSetup.right.rxid,
 				'data-id': monitorSetup.right.id,
 				'data-name': monitorSetup.right.name,
 				'data-desc': monitorSetup.right.desc
 			});
 			rightSpan.html(monitorSetup.right.desc);
 		}
+		// if (receivers[1]) {
+		// 	if (receivers[1].channel) {
+		// 		monitorSetup.left = {
+		// 			rxid: receivers[1].d_id,
+		// 			id: receivers[1].channel.c_id,
+		// 			name: receivers[1].channel.c_name,
+		// 			desc: receivers[1].channel.c_description
+		// 		};
+		// 		//LEFT
+		// 		var leftSpan = $('#leftMonitor span');
+		// 		leftSpan.attr({
+		// 			'data-rxid': monitorSetup.left.rxid,
+		// 			'data-id': monitorSetup.left.id,
+		// 			'data-name': monitorSetup.left.name,
+		// 			'data-desc': monitorSetup.left.desc
+		// 		});
+		// 		leftSpan.html(monitorSetup.left.desc);
+		// 	} else {
+		// 		//fallback- get the channel? leave it unassigned?
+		// 	}
+		// }
+		// if (receivers[2]) {
+		// 	if (receivers[0].channel) {
+		// 		monitorSetup.right = {
+		// 			rxid: receivers[2].d_id,
+		// 			id: receivers[2].channel.c_id,
+		// 			name: receivers[2].channel.c_name,
+		// 			desc: receivers[2].channel.c_description
+		// 		};
+		// 		//RIGHT
+		// 		var rightSpan = $('#rightMonitor span');
+		// 		rightSpan.attr({
+		// 			'data-rxid': monitorSetup.right.rxid,
+		// 			'data-id': monitorSetup.right.id,
+		// 			'data-name': monitorSetup.right.name,
+		// 			'data-desc': monitorSetup.right.desc
+		// 		});
+		// 		rightSpan.html(monitorSetup.right.desc);
+		// 	} else {
+		// 		//fallback?
+		// 	}
+		// }
 	}
 </script>

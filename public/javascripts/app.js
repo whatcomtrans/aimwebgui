@@ -75,7 +75,7 @@ workspace.changeChannel = function(receiverId, channelId) {
 
     workspace.connect_channel(null, null, channelId, receiverId, null, null, function() {
         // Emit channelChanged event, after we have refreshed lists
-        worspace.get(function(success) {
+        workspace.get(function(success) {
             workspace.emitEvent(workspace.CHANNELCHANGED, true);
         });
     });
