@@ -105,7 +105,7 @@ workspace.load = function(username, password, callback) {
         if (success) {
             // Setup polling and/or listeners
             // Pull down list of recievers, channels and presets
-            setInterval(workspace.get, 1000 * 5);  // TODO what is the correct timing for this?
+            setInterval(workspace.get, 1000 * 1);  // TODO what is the correct timing for this?
             workspace.get(function() {
                 if (success) {
                     workspace.emitEvent(workspace.LOADED, channels);
