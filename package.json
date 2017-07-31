@@ -14,6 +14,7 @@
     "hbs": "latest",
     "http-proxy": "latest",
     "morgan": "~1.7.0",
+    "node-windows": "^0.1.14",
     "serve-favicon": "~2.3.2"
   }
 }

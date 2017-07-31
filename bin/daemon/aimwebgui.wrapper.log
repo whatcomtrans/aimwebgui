@@ -1,0 +1,2 @@
+2017-06-09 10:01:43 - Starting C:\Program Files\nodejs\node.exe  --harmony C:\aimwebgui\node_modules\node-windows\lib\wrapper.js --file C:\aimwebgui\bin\www --log "AimWebGUI wrapper" --grow 0.25 --wait 1 --maxrestarts 3 --abortonerror n --stopparentfirst undefined
+2017-06-09 10:01:43 - Started 4128

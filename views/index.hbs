@@ -62,6 +62,7 @@
 	        handled = false;
 	    }
 	});
+
 	//Listener for swap arrow events
 	var swapped = false;
 	$(document).on("touchend click", ".fa-arrows-h", function(e){
@@ -105,6 +106,7 @@
 	        pre = false;
 	    }
 	});
+
 	function handleIt(e) {
 		var leftEle = $('#'+e.target.dataset.left+' .channel-desc')[0];
 		var rightEle = $('#'+e.target.dataset.right+' .channel-desc')[0];
@@ -157,9 +159,10 @@
 		updatePresets();
 		//TODO QUESTION: Set a default preset?
 		// preset = presets[0];
-
+		
 		//TODO QUESTION: Do we want to let the monitor come up as left or set default preset?
 		// workspace.changePreset(preset.cp_id);
+
 	}
 
 	//Find channel helper function
