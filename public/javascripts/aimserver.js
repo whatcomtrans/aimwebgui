@@ -3,9 +3,9 @@
 var lastResp = null;  // for client side debug
 var lastReqURL = null // for client side debug
 var lastReq = null;   // for client side debug
-
-function AIMServer(serverURL = "/") {
-
+var serverURL = "/";
+// function AIMServer(serverURL = "/") {
+function AIMServer(serverURL) {
     // https://github.com/abdmob/x2js
     var x2jsObj = new X2JS();
 
@@ -72,7 +72,8 @@ function AIMServer(serverURL = "/") {
         return req;
     }
 
-    this.login = function (username, password, version = 4, callback) {
+    this.login = function (username, password, version, callback) {
+        version = 4;
         callback = (typeof callback === 'function') ? callback : function() {};
         var params = {
             "username": username,

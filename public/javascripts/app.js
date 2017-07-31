@@ -1,4 +1,5 @@
-var workspace = new AIMServer();
+
+var workspace = new AIMServer(serverURL);
 var init = false;
 
 /*
@@ -28,7 +29,8 @@ server.refresh_collections = function() {
     evt.initCustomEvent( event, params.bubbles, params.cancelable, params.detail );
     return evt;
    }
-
+   console.log(CustomEvent);
+   console.log(typeof CustomEvent);
   CustomEvent.prototype = window.Event.prototype;
 
   window.CustomEvent = CustomEvent;
