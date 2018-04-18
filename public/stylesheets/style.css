@@ -93,6 +93,8 @@ i {
 }
 .modal-body {
     padding: 0;
+    max-height: 550px;
+    overflow-y: auto;
 }
 .modal-body ul {
     padding: 0;
@@ -125,6 +127,9 @@ i {
   font-size: 14px;
   color: whitesmoke;
   font-weight: 500;
+}
+.modal-dialog {
+  overflow-y: initial!important;
 }
 .btn-link {
   color: #797979;
