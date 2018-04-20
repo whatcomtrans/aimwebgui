@@ -116,7 +116,6 @@ workspace.load = function(username, password, callback) {
             callback(success);
         } else {
             console.log("Error with login");
-            alert(username + ' ' + password + ' ' + window.location.href);
             // TODO, what else should happen here
             callback(success);
         }
@@ -212,15 +211,13 @@ function initCheck() {
 
 var userId = getUrlParams().id;
 if (userId === undefined) {
-    userId = "d1"
+    userId = "D1"
 }
-console.log(userId);
 
 var userPassword = getUrlParams().password;
 if (userPassword === undefined) {
-    userPassword = "de5eccab28"
+    userPassword = "password"
 }
-console.log(userPassword);
 
 workspace.load(userId, userPassword);
 
@@ -228,8 +225,7 @@ function getUrlParams(url) {
     // https://www.sitepoint.com/get-url-parameters-with-javascript/
 
   // get query string from url (optional) or window
-  var queryString = url ? url.split('?')[1] : window.location.href.split('?').slice(1)[0];
-  // var queryString = url ? url.split('/').pop() : window.location.href.split('/').pop();
+  var queryString = url ? url.split('?')[1] : window.location.search.slice(1);
 
   // we'll store the parameters here
   var obj = {};
@@ -259,7 +255,7 @@ function getUrlParams(url) {
 
       // (optional) keep case consistent
       paramName = paramName.toLowerCase();
-      paramValue = paramValue.toLowerCase();
+      // paramValue = paramValue.toLowerCase();
 
       // if parameter name already exists
       if (obj[paramName]) {
