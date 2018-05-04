@@ -1,0 +1,8 @@
+{
+    "apps": [
+      {
+        "name": "aimwebgui",
+        "script": "./bin/www"
+      }
+    ]
+}
