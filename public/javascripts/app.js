@@ -44,6 +44,56 @@ workspace.emitEvent = function(type, detail) {
     dispatchEvent(event);
 };
 
+// This code was added to only process workspace.get requests when the page is visible
+workspace.handleVisibilityChange = function() {
+    // Set the name of the hidden property and the change event for visibility
+    var hidden, visibilityChange; 
+    if (typeof document.hidden !== "undefined") { // Opera 12.10 and Firefox 18 and later support 
+    hidden = "hidden";
+    visibilityChange = "visibilitychange";
+    } else if (typeof document.msHidden !== "undefined") {
+    hidden = "msHidden";
+    visibilityChange = "msvisibilitychange";
+    } else if (typeof document.webkitHidden !== "undefined") {
+    hidden = "webkitHidden";
+    visibilityChange = "webkitvisibilitychange";
+    }
+
+    //workspace._visibilityHiddenProperty = hidden
+    //workspace._visibiltiyChangeEventName = visibilityChange
+
+    workspace.running = true;
+    workspace.PAUSED = "PAUSED";
+    workspace.RESUMED = "RESUMED";
+
+    workspace.pause = function() {
+        workspace.running = false;
+        // console.log("workspace.PAUSED");
+        workspace.emitEvent(workspace.PAUSED, workspace.running);
+    }
+
+    workspace.resume = function() {
+        workspace.running = true;
+        // console.log("workspace.RESUMED");
+        workspace.emitEvent(workspace.RESUMED, workspace.running);
+    }
+
+    // Warn if the browser doesn't support addEventListener or the Page Visibility API
+    if (typeof document.addEventListener === "undefined" || typeof document.hidden === "undefined") {
+        console.log("This requires a browser, such as IE 10+, Google Chrome or Firefox, that supports the Page Visibility API.");
+    } else {
+        // Handle page visibility change
+        // If the page is hidden, pause the workspace;
+        // if the page is shown, resume the workspace
+        document.addEventListener(visibilityChange, function() {if (document[hidden]) {
+                workspace.pause();
+            } else {
+                workspace.resume();
+            }
+        }, false);
+    }
+}
+
 workspace.CHANNELCHANGED = "CHANNELCHANGED";
 
 workspace.getReceiverByID = function(receiverId) {
@@ -102,12 +152,16 @@ workspace.LOADED = "LOADED";
 
 workspace.load = function(username, password, callback) {
     callback = (typeof callback === 'function') ? callback : function() {};
+    
+    // Setup handling of page visibility
+    workspace.handleVisibilityChange();
+
     // Login
     workspace.login(username, password, null, function(success) {
         if (success) {
             // Setup polling and/or listeners
             // Pull down list of recievers, channels and presets
-            setInterval(workspace.get, 1000 * 1);  // TODO what is the correct timing for this?
+            setInterval(function() {if (workspace.running) {workspace.get;}}, 1000 * 2);  // Only run get if the screen is active, every 2 seconds
             workspace.get(function() {
                 if (success) {
                     workspace.emitEvent(workspace.LOADED, channels);
@@ -126,9 +180,11 @@ workspace.load = function(username, password, callback) {
 workspace.CHANNELSLISTREADY = "CHANNELSLISTREADY";
 workspace.PRESETSLISTREADY = "PRESETSLISTREADY";
 workspace.RECEIVERLISTREADY = "RECEIVERLISTREADY";
+workspace.GETTING = "GETTING"
 
 workspace.get = function(callback) {
     callback = (typeof callback === 'function') ? callback : function() {};
+    workspace.emitEvent(workspace.GETTING, true);
     // Emit channelsReady with array of channels
     workspace.get_channels(null, null, null, null, null, null, null, null, null, function(success, version, timestamp, errors, page, results_per_page, count_channels, channels){
         if (success) {
@@ -211,12 +267,12 @@ function initCheck() {
 
 var userId = getUrlParams().id;
 if (userId === undefined) {
-    userId = "D1"
+    userId = "d1"
 }
 
 var userPassword = getUrlParams().password;
 if (userPassword === undefined) {
-    userPassword = "password"
+    userPassword = ""
 }
 
 workspace.load(userId, userPassword);
@@ -283,3 +339,4 @@ function getUrlParams(url) {
 
   return obj;
 }
+
