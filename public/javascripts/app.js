@@ -2,20 +2,9 @@
 var workspace = new AIMServer(serverURL);
 var init = false;
 
-/*
-server.refresh_collections = function() {
-    var s = this;
-    this.get_devices(null, null, 'rx', null ,null,null,null,null,null,null,null,null, function(success, version, timestamp, errors, page, results_per_page, total_devices, count_devices, devices){
-        s.receivers = devices;
-    });
-    this.get_channels(null,null,null,null,null,null,null,null,null, function(success, version, timestamp, errors, page, results_per_page, count_channels, channels){
-        s.channels = channels;
-    });
-    this.get_presets(null,null,null,null, function(success, version, timestamp, errors, page, results_per_page, total_presets, count_presets, presets){
-        s.presets = presets;
-    });
-}
-*/
+// Only run get if the screen is active, every X milliseconds
+//            milli * seconds * minutes
+workspace.refreshTimer = 1000 * 60 * 60;
 
 
 // CustomEvent polyfill, see https://developer.mozilla.org/en-US/docs/Web/API/CustomEvent/CustomEvent
@@ -44,6 +33,8 @@ workspace.emitEvent = function(type, detail) {
     dispatchEvent(event);
 };
 
+workspace.running = true;  // Do not change
+
 // This code was added to only process workspace.get requests when the page is visible
 workspace.handleVisibilityChange = function() {
     // Set the name of the hidden property and the change event for visibility
@@ -58,23 +49,20 @@ workspace.handleVisibilityChange = function() {
     hidden = "webkitHidden";
     visibilityChange = "webkitvisibilitychange";
     }
+    console.log("hidden = " + hidden + "; visibilityChange = " + visibilityChange);
 
-    //workspace._visibilityHiddenProperty = hidden
-    //workspace._visibiltiyChangeEventName = visibilityChange
-
-    workspace.running = true;
     workspace.PAUSED = "PAUSED";
     workspace.RESUMED = "RESUMED";
 
     workspace.pause = function() {
         workspace.running = false;
-        // console.log("workspace.PAUSED");
+        console.log("workspace.PAUSED");
         workspace.emitEvent(workspace.PAUSED, workspace.running);
     }
 
     workspace.resume = function() {
         workspace.running = true;
-        // console.log("workspace.RESUMED");
+        console.log("workspace.RESUMED");
         workspace.emitEvent(workspace.RESUMED, workspace.running);
     }
 
@@ -161,7 +149,10 @@ workspace.load = function(username, password, callback) {
         if (success) {
             // Setup polling and/or listeners
             // Pull down list of recievers, channels and presets
-            setInterval(function() {if (workspace.running) {workspace.get;}}, 1000 * 2);  // Only run get if the screen is active, every 2 seconds
+
+            // TODO: refresh of get disabled for testing, do we even need a periodic refresh? 5-11-2018
+            // setInterval(workspace.runGet, workspace.refreshTimer);
+            
             workspace.get(function() {
                 if (success) {
                     workspace.emitEvent(workspace.LOADED, channels);
@@ -181,6 +172,13 @@ workspace.CHANNELSLISTREADY = "CHANNELSLISTREADY";
 workspace.PRESETSLISTREADY = "PRESETSLISTREADY";
 workspace.RECEIVERLISTREADY = "RECEIVERLISTREADY";
 workspace.GETTING = "GETTING"
+
+workspace.runGet = function(callback) {
+    callback = (typeof callback === 'function') ? callback : function() {};
+    if (workspace.running) {
+        workspace.get(callback);
+    }
+}
 
 workspace.get = function(callback) {
     callback = (typeof callback === 'function') ? callback : function() {};
@@ -252,7 +250,7 @@ addEventListener(workspace.RECEIVERLISTREADY, function(e){
 });
 
 addEventListener(workspace.CHANNELCHANGED, function(e) {
-    console.log(e);
+    // console.log(e);
     updateMonitors();
 });
 
