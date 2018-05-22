@@ -83,8 +83,6 @@ workspace.handleVisibilityChange = function () {
     }
 }
 
-workspace.CHANNELCHANGED = "CHANNELCHANGED";
-
 workspace.getReceiverByID = function (receiverId) {
     return workspace.receivers.find(function (rx) {
         return rx.d_id === receiverId;
@@ -111,12 +109,13 @@ workspace.swap = function (receiverOneId, receiverTwoId) {
     }
 }
 
-workspace.changeChannel = async function (receiverId, channelId) {
+workspace.changeChannel = async function (receiverId, channelId, isSwap) {
     // Change the channel of a specific receiver
     await workspace.connect_channel(null, null, channelId, receiverId, null, null);
     // Emit channelChanged event, after we have refreshed lists
-    await workspace.get();
-    workspace.emitEvent(workspace.CHANNELCHANGED);
+    if (!isSwap) {
+        await workspace.get();
+    }
 };
 
 workspace.changePreset = function (presetId) {
@@ -225,25 +224,29 @@ workspace.get = async function () {
 
 addEventListener(workspace.CHANNELSLISTREADY, function (e) {
     channels = e.detail;
-    initCheck();
-    updateChannels();
+    if (init) {
+        updateChannels();
+    } else {
+        initCheck();
+    }
 });
 
 addEventListener(workspace.PRESETSLISTREADY, function (e) {
     presets = e.detail;
-    initCheck();
-    updatePresets();
+    if (init) {
+        updatePresets();
+    } else {
+        initCheck();
+    }
 });
 
 addEventListener(workspace.RECEIVERLISTREADY, function (e) {
     receivers = e.detail;
-    initCheck();
-    updateMonitors();
-});
-
-addEventListener(workspace.CHANNELCHANGED, function (e) {
-    // console.log(e);
-    updateMonitors();
+    if (init) {
+        updateMonitors();
+    } else {
+        initCheck();
+    }
 });
 
 function initCheck() {

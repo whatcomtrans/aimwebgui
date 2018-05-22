@@ -117,8 +117,9 @@
 		var receiverTwoId = $(rightEle).attr('data-rxid');
 		var channelOneId = $(leftEle).attr('data-id');
 		var channelTwoId = $(rightEle).attr('data-id');
-		await workspace.changeChannel(receiverOneId, channelTwoId);
-		await workspace.changeChannel(receiverTwoId, channelOneId);
+		await workspace.changeChannel(receiverOneId, channelTwoId, true);
+		await workspace.changeChannel(receiverTwoId, channelOneId, true);
+		workspace.get();
 	}
 	function handlePreset(e) {
 		//Remove the "selected" class from any li's in this modal
