@@ -10,23 +10,23 @@ workspace.refreshTimer = 1000 * 60 * 60;
 // CustomEvent polyfill, see https://developer.mozilla.org/en-US/docs/Web/API/CustomEvent/CustomEvent
 (function () {
 
-  if ( typeof window.CustomEvent === "function" ) return false;
+    if (typeof window.CustomEvent === "function") return false;
 
-  function CustomEvent ( event, params ) {
-    params = params || { bubbles: false, cancelable: false, detail: undefined };
-    var evt = document.createEvent( 'CustomEvent' );
-    evt.initCustomEvent( event, params.bubbles, params.cancelable, params.detail );
-    return evt;
-   }
-   console.log(CustomEvent);
-   console.log(typeof CustomEvent);
-  CustomEvent.prototype = window.Event.prototype;
+    function CustomEvent(event, params) {
+        params = params || { bubbles: false, cancelable: false, detail: undefined };
+        var evt = document.createEvent('CustomEvent');
+        evt.initCustomEvent(event, params.bubbles, params.cancelable, params.detail);
+        return evt;
+    }
+    console.log(CustomEvent);
+    console.log(typeof CustomEvent);
+    CustomEvent.prototype = window.Event.prototype;
 
-  window.CustomEvent = CustomEvent;
+    window.CustomEvent = CustomEvent;
 })();
 
 
-workspace.emitEvent = function(type, detail) {
+workspace.emitEvent = function (type, detail) {
     var event = new CustomEvent(type, {
         "detail": detail
     });
@@ -36,31 +36,31 @@ workspace.emitEvent = function(type, detail) {
 workspace.running = true;  // Do not change
 
 // This code was added to only process workspace.get requests when the page is visible
-workspace.handleVisibilityChange = function() {
+workspace.handleVisibilityChange = function () {
     // Set the name of the hidden property and the change event for visibility
-    var hidden, visibilityChange; 
+    var hidden, visibilityChange;
     if (typeof document.hidden !== "undefined") { // Opera 12.10 and Firefox 18 and later support 
-    hidden = "hidden";
-    visibilityChange = "visibilitychange";
+        hidden = "hidden";
+        visibilityChange = "visibilitychange";
     } else if (typeof document.msHidden !== "undefined") {
-    hidden = "msHidden";
-    visibilityChange = "msvisibilitychange";
+        hidden = "msHidden";
+        visibilityChange = "msvisibilitychange";
     } else if (typeof document.webkitHidden !== "undefined") {
-    hidden = "webkitHidden";
-    visibilityChange = "webkitvisibilitychange";
+        hidden = "webkitHidden";
+        visibilityChange = "webkitvisibilitychange";
     }
     console.log("hidden = " + hidden + "; visibilityChange = " + visibilityChange);
 
     workspace.PAUSED = "PAUSED";
     workspace.RESUMED = "RESUMED";
 
-    workspace.pause = function() {
+    workspace.pause = function () {
         workspace.running = false;
         console.log("workspace.PAUSED");
         workspace.emitEvent(workspace.PAUSED, workspace.running);
     }
 
-    workspace.resume = function() {
+    workspace.resume = function () {
         workspace.running = true;
         console.log("workspace.RESUMED");
         workspace.emitEvent(workspace.RESUMED, workspace.running);
@@ -73,7 +73,8 @@ workspace.handleVisibilityChange = function() {
         // Handle page visibility change
         // If the page is hidden, pause the workspace;
         // if the page is shown, resume the workspace
-        document.addEventListener(visibilityChange, function() {if (document[hidden]) {
+        document.addEventListener(visibilityChange, function () {
+            if (document[hidden]) {
                 workspace.pause();
             } else {
                 workspace.resume();
@@ -84,22 +85,22 @@ workspace.handleVisibilityChange = function() {
 
 workspace.CHANNELCHANGED = "CHANNELCHANGED";
 
-workspace.getReceiverByID = function(receiverId) {
-    return workspace.receivers.find(function(rx) {
+workspace.getReceiverByID = function (receiverId) {
+    return workspace.receivers.find(function (rx) {
         return rx.d_id === receiverId;
     });
 }
 
-workspace.getChannelsByName = function(channelName) {
-    return workspace.channels.find(function(channel) {
+workspace.getChannelsByName = function (channelName) {
+    return workspace.channels.find(function (channel) {
         return channel.c_name === channelName;
     });
 }
 
 //wasnt working so i wrote around it, dont need this anymore
-workspace.swap = function(receiverOneId, receiverTwoId) {
+workspace.swap = function (receiverOneId, receiverTwoId) {
     // Get the current channel of each receiver and change the channel on each
-    
+
     if (workspace.receivers.length > 0) {
         // We actually have some receivers
         var receiverOneChannelId = workspace.getChannelsByName(workspace.getReceiverByID(receiverOneId).c_name).c_id;
@@ -110,54 +111,49 @@ workspace.swap = function(receiverOneId, receiverTwoId) {
     }
 }
 
-workspace.changeChannel = function(receiverId, channelId) {
+workspace.changeChannel = async function (receiverId, channelId) {
     // Change the channel of a specific receiver
+    await workspace.connect_channel(null, null, channelId, receiverId, null, null);
+    // Emit channelChanged event, after we have refreshed lists
+    await workspace.get();
+    workspace.emitEvent(workspace.CHANNELCHANGED);
+};
 
-    workspace.connect_channel(null, null, channelId, receiverId, null, null, function() {
-        // Emit channelChanged event, after we have refreshed lists
-        workspace.get(function(success) {
-            workspace.emitEvent(workspace.CHANNELCHANGED, true);
-        });
-    });
-}
-
-workspace.changePreset = function(presetId) {
+workspace.changePreset = function (presetId) {
     // Change to a preset
-    for (var i=0;i<presets.length;i++) {
-        if (presetId==presets[i].cp_id) {
+    for (var i = 0; i < presets.length; i++) {
+        if (presetId == presets[i].cp_id) {
             preset = presets[i];
         }
     }
-    workspace.connect_preset(null, null, presetId, null, 1, function() {
+    workspace.connect_preset(null, null, presetId, null, 1, async function () {
         // Emit channelChanged event, after we have refreshed lists
-        workspace.get(function(success) {
-            workspace.emitEvent(workspace.CHANNELCHANGED, true);
-        });
+        await workspace.get();
+        workspace.emitEvent(workspace.CHANNELCHANGED, true);
     });
 }
 
 workspace.LOADED = "LOADED";
 
-workspace.load = function(username, password, callback) {
-    callback = (typeof callback === 'function') ? callback : function() {};
-    
+workspace.load = function (username, password, callback) {
+    callback = (typeof callback === 'function') ? callback : function () { };
+
     // Setup handling of page visibility
     workspace.handleVisibilityChange();
 
     // Login
-    workspace.login(username, password, null, function(success) {
+    workspace.login(username, password, null, async function (success) {
         if (success) {
             // Setup polling and/or listeners
             // Pull down list of recievers, channels and presets
 
             // TODO: refresh of get disabled for testing, do we even need a periodic refresh? 5-11-2018
             // setInterval(workspace.runGet, workspace.refreshTimer);
-            
-            workspace.get(function() {
-                if (success) {
-                    workspace.emitEvent(workspace.LOADED, channels);
-                }
-            });
+
+            await workspace.get();
+            if (success) {
+                workspace.emitEvent(workspace.LOADED, channels);
+            }
             callback(success);
         } else {
             console.log("Error with login");
@@ -165,7 +161,7 @@ workspace.load = function(username, password, callback) {
             callback(success);
         }
     });
-    
+
 }
 
 workspace.CHANNELSLISTREADY = "CHANNELSLISTREADY";
@@ -173,89 +169,85 @@ workspace.PRESETSLISTREADY = "PRESETSLISTREADY";
 workspace.RECEIVERLISTREADY = "RECEIVERLISTREADY";
 workspace.GETTING = "GETTING"
 
-workspace.runGet = function(callback) {
-    callback = (typeof callback === 'function') ? callback : function() {};
+workspace.runGet = async function (callback) {
+    callback = (typeof callback === 'function') ? callback : function () { };
     if (workspace.running) {
-        workspace.get(callback);
+        await workspace.get();
+        callback();
     }
 }
 
-workspace.get = function(callback) {
-    callback = (typeof callback === 'function') ? callback : function() {};
+workspace.get = async function () {
     workspace.emitEvent(workspace.GETTING, true);
+    let channels;
+    let presets;
+    let devices;
     // Emit channelsReady with array of channels
-    workspace.get_channels(null, null, null, null, null, null, null, null, null, function(success, version, timestamp, errors, page, results_per_page, count_channels, channels){
-        if (success) {
-            workspace.channels = channels;
-            workspace.emitEvent(workspace.CHANNELSLISTREADY, channels);
-            callback(success, channels);
-        } else {
-            console.log("Error with get_channels");
-            // TODO, what else should happen here
-            callback(success);
-        }
-    });
-    
+    const getChannelsResponse = await workspace.get_channels(null, null, null, null, null, null, null, null, null);
+    if (getChannelsResponse.success) {
+        const channels = getChannelsResponse.channels;
+        workspace.channels = channels;
+        workspace.emitEvent(workspace.CHANNELSLISTREADY, channels);
+    } else {
+        console.log("Error with get_channels");
+    }
+
     // Emit presetsReady with array of presets
-    workspace.get_presets(null,null,null,null, function(success, version, timestamp, errors, page, results_per_page, total_presets, count_presets, presets){
-        if (success) {
-            workspace.presets = presets;
-            workspace.emitEvent(workspace.PRESETSLISTREADY, presets);
-            callback(success, presets);
-        } else {
-            console.log("Error with get_presets");
-            // TODO, what else should happen here
-            callback(success);
-        }
-    });
+    const getPresetsResponse = await workspace.get_presets(null, null, null, null);
+    if (getPresetsResponse.success) {
+        const presets = getPresetsResponse.presets;
+        workspace.presets = presets;
+        workspace.emitEvent(workspace.PRESETSLISTREADY, presets);
+    } else {
+        console.log("Error with get_presets");
+    }
 
     // Emit receiversReady with array of receivers
-    workspace.get_devices(null, null, 'rx', null ,null,null,null,null,null,null,null,null, function(success, version, timestamp, errors, page, results_per_page, total_devices, count_devices, devices){
-        if (success) {
-            // TODO Add channel details
-            // workspace.getChannelsByName(receiver.c_name)
-            devices.forEach(function callback(receiver, index, array) {
-                receiver.channel = workspace.getChannelsByName(receiver.c_name);
-            });
-            workspace.receivers = devices;
-            workspace.emitEvent(workspace.RECEIVERLISTREADY, devices);
-            callback(success, receivers);
-        } else {
-            console.log("Error with get_devices");
-            // TODO, what else should happen here
-            callback(success);
-        }
-    });
+    const getDevicesResponse = await workspace.get_devices(null, null, 'rx', null, null, null, null, null, null, null, null, null);
+    if (getDevicesResponse.success) {
+        // TODO Add channel details
+        // workspace.getChannelsByName(receiver.c_name)
+        const devices = getDevicesResponse.devices;
+        devices.forEach(function callback(receiver, index, array) {
+            receiver.channel = workspace.getChannelsByName(receiver.c_name);
+        });
+        workspace.receivers = devices;
+        workspace.emitEvent(workspace.RECEIVERLISTREADY, devices);
+    } else {
+        console.log("Error with get_devices");
+    }
+
+    return { channels, presets, devices };
 }
 
 // Note, this just update the global variables.  Prior to the event being called,
 // the workspace.channels, workspace.presets, workspace.recivers is updated too.
 
-addEventListener(workspace.CHANNELSLISTREADY, function(e){
+addEventListener(workspace.CHANNELSLISTREADY, function (e) {
     channels = e.detail;
     initCheck();
     updateChannels();
 });
 
-addEventListener(workspace.PRESETSLISTREADY, function(e){
+addEventListener(workspace.PRESETSLISTREADY, function (e) {
     presets = e.detail;
     initCheck();
     updatePresets();
 });
 
-addEventListener(workspace.RECEIVERLISTREADY, function(e){
+addEventListener(workspace.RECEIVERLISTREADY, function (e) {
     receivers = e.detail;
     initCheck();
     updateMonitors();
 });
 
-addEventListener(workspace.CHANNELCHANGED, function(e) {
+addEventListener(workspace.CHANNELCHANGED, function (e) {
     // console.log(e);
     updateMonitors();
 });
 
 function initCheck() {
-    if (channels&&presets&&receivers&&!init) {
+    if (channels && presets && receivers && !init) {
         init = true;
         initPage();
     }
@@ -278,63 +270,63 @@ workspace.load(userId, userPassword);
 function getUrlParams(url) {
     // https://www.sitepoint.com/get-url-parameters-with-javascript/
 
-  // get query string from url (optional) or window
-  var queryString = url ? url.split('?')[1] : window.location.search.slice(1);
+    // get query string from url (optional) or window
+    var queryString = url ? url.split('?')[1] : window.location.search.slice(1);
 
-  // we'll store the parameters here
-  var obj = {};
+    // we'll store the parameters here
+    var obj = {};
 
-  // if query string exists
-  if (queryString) {
+    // if query string exists
+    if (queryString) {
 
-    // stuff after # is not part of query string, so get rid of it
-    queryString = queryString.split('#')[0];
+        // stuff after # is not part of query string, so get rid of it
+        queryString = queryString.split('#')[0];
 
-    // split our query string into its component parts
-    var arr = queryString.split('&');
+        // split our query string into its component parts
+        var arr = queryString.split('&');
 
-    for (var i=0; i<arr.length; i++) {
-      // separate the keys and the values
-      var a = arr[i].split('=');
+        for (var i = 0; i < arr.length; i++) {
+            // separate the keys and the values
+            var a = arr[i].split('=');
 
-      // in case params look like: list[]=thing1&list[]=thing2
-      var paramNum = undefined;
-      var paramName = a[0].replace(/\[\d*\]/, function(v) {
-        paramNum = v.slice(1,-1);
-        return '';
-      });
+            // in case params look like: list[]=thing1&list[]=thing2
+            var paramNum = undefined;
+            var paramName = a[0].replace(/\[\d*\]/, function (v) {
+                paramNum = v.slice(1, -1);
+                return '';
+            });
 
-      // set parameter value (use 'true' if empty)
-      var paramValue = typeof(a[1])==='undefined' ? true : a[1];
+            // set parameter value (use 'true' if empty)
+            var paramValue = typeof (a[1]) === 'undefined' ? true : a[1];
 
-      // (optional) keep case consistent
-      paramName = paramName.toLowerCase();
-      // paramValue = paramValue.toLowerCase();
+            // (optional) keep case consistent
+            paramName = paramName.toLowerCase();
+            // paramValue = paramValue.toLowerCase();
 
-      // if parameter name already exists
-      if (obj[paramName]) {
-        // convert value to array (if still string)
-        if (typeof obj[paramName] === 'string') {
-          obj[paramName] = [obj[paramName]];
+            // if parameter name already exists
+            if (obj[paramName]) {
+                // convert value to array (if still string)
+                if (typeof obj[paramName] === 'string') {
+                    obj[paramName] = [obj[paramName]];
+                }
+                // if no array index number specified...
+                if (typeof paramNum === 'undefined') {
+                    // put the value on the end of the array
+                    obj[paramName].push(paramValue);
+                }
+                // if array index number specified...
+                else {
+                    // put the value at that index number
+                    obj[paramName][paramNum] = paramValue;
+                }
+            }
+            // if param name doesn't exist yet, set it
+            else {
+                obj[paramName] = paramValue;
+            }
         }
-        // if no array index number specified...
-        if (typeof paramNum === 'undefined') {
-          // put the value on the end of the array
-          obj[paramName].push(paramValue);
-        }
-        // if array index number specified...
-        else {
-          // put the value at that index number
-          obj[paramName][paramNum] = paramValue;
-        }
-      }
-      // if param name doesn't exist yet, set it
-      else {
-        obj[paramName] = paramValue;
-      }
     }
-  }
 
-  return obj;
+    return obj;
 }
 
