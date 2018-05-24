@@ -9,7 +9,6 @@ function AIMServer(serverURL) {
     // https://github.com/abdmob/x2js
     var x2jsObj = new X2JS();
 
-
     // Initial properties
     this.defaultVersion = 6;
     this.loginSuccess = 0;
@@ -22,7 +21,7 @@ function AIMServer(serverURL) {
         version = (version == null) ? this.defaultVersion : version;
         token = (token == null) ? this.token : token;
         params = (params == null) ? new Object() : params;
-        
+
         var server = this;
 
         var req = new XMLHttpRequest;
@@ -31,7 +30,7 @@ function AIMServer(serverURL) {
 
         // Handle results
         if (typeof api_response_callback === 'function') {
-            req.addEventListener("load", function() {
+            req.addEventListener("load", function () {
                 lastResp = this;
                 var xmlDoc = lastResp.responseXML;
                 var api_response = x2jsObj.xml2json(lastResp.responseXML).api_response
@@ -58,8 +57,8 @@ function AIMServer(serverURL) {
         }
 
         // Remove nulls
-        for (var propName in params) { 
-            if (params[propName] === null ||params[propName] === undefined) {
+        for (var propName in params) {
+            if (params[propName] === null || params[propName] === undefined) {
                 delete params[propName];
             }
         }
@@ -74,13 +73,13 @@ function AIMServer(serverURL) {
 
     this.login = function (username, password, version, callback) {
         version = 4;
-        callback = (typeof callback === 'function') ? callback : function() {};
+        callback = (typeof callback === 'function') ? callback : function () { };
         var params = {
             "username": username,
             "password": password
         };
 
-        this.requestFactory("login", version, null, params, function(api_response, server){
+        this.requestFactory("login", version, null, params, function (api_response, server) {
             server.loginSuccess = api_response.success;
             server.token = "";
 
@@ -89,16 +88,16 @@ function AIMServer(serverURL) {
                 callback(api_response.success, api_response.version, api_response.timestamp, null, api_response.token);
             } else {
                 callback(api_response.success, api_response.version, api_response.timestamp, api_response.errors);
-            }    
+            }
         }).send();
     }
 
     this.logout = function (token, version, callback) {
-        callback = (typeof callback === 'function') ? callback : function() {};
+        callback = (typeof callback === 'function') ? callback : function () { };
 
         var params = {};
 
-        this.requestFactory("logout", version, token, params, function(api_response, server) {
+        this.requestFactory("logout", version, token, params, function (api_response, server) {
             if (api_response.success == 1) {
                 server.loginSuccess = 0;
                 server.token = "";
@@ -109,9 +108,7 @@ function AIMServer(serverURL) {
         }).send();
     }
 
-    this.get_devices = function (token, version, device_type, filter_d_name, filter_d_description, filter_d_location, sort, sort_dir, status, show_all, page, results_per_page, callback) {
-        callback = (typeof callback === 'function') ? callback : function() {};
-
+    this.get_devices = function (token, version, device_type, filter_d_name, filter_d_description, filter_d_location, sort, sort_dir, status, show_all, page, results_per_page) {
         var params = {
             'device_type': device_type,
             'filter_d_name': filter_d_name,
@@ -125,22 +122,22 @@ function AIMServer(serverURL) {
             'results_per_page': results_per_page
         };
 
-        this.requestFactory("get_devices", version, token, params, function(api_response) {
-            if(api_response.success == 1) {
-                var results = new Object();
-                if (parseInt(api_response.count_devices) > 0) {
-                    results = api_response.devices.device;
-                }               
-                callback(api_response.success, api_response.version, api_response.timestamp, null, parseInt(api_response.page), parseInt(api_response.results_per_page), parseInt(api_response.total_devices), parseInt(api_response.count_devices), results);
-            } else {
-                callback(api_response.success, api_response.version, api_response.timestamp, api_response.errors);
-            }
-        }).send();
+        return new Promise((resolve, reject) => {
+            this.requestFactory("get_devices", version, token, params, function (api_response) {
+                if (api_response.success == 1) {
+                    var results = new Object();
+                    if (parseInt(api_response.count_devices) > 0) {
+                        results = api_response.devices.device;
+                    }
+                    resolve({ success: api_response.success, devices: results });
+                } else {
+                    reject();
+                }
+            }).send();
+        })
     }
 
-    this.get_channels = function(token, version, page, results_per_page, device_id, filter_c_name, filter_c_description, filter_c_location, filter_favourites, callback) {
-        callback = (typeof callback === 'function') ? callback : function() {};
-
+    this.get_channels = function (token, version, page, results_per_page, device_id, filter_c_name, filter_c_description, filter_c_location, filter_favourites) {
         var params = {
             'page': page,
             'results_per_page': results_per_page,
@@ -151,44 +148,43 @@ function AIMServer(serverURL) {
             'filter_favourites': filter_favourites
         }
 
-        this.requestFactory("get_channels", version, token, params, function(api_response) {
-            if(api_response.success == 1) {
-                var results = new Object();
-                if (parseInt(api_response.count_channels) > 0) {
-                    results = api_response.channels.channel;
+        return new Promise((resolve, reject) => {
+            this.requestFactory("get_channels", version, token, params, function (api_response) {
+                if (api_response.success == 1) {
+                    var results = new Object();
+                    if (parseInt(api_response.count_channels) > 0) {
+                        results = api_response.channels.channel;
+                    }
+                    resolve({ success: api_response.success, channels: results });
+                } else {
+                    reject();
                 }
-                callback(api_response.success, api_response.version, api_response.timestamp, null, parseInt(api_response.page), parseInt(api_response.results_per_page), parseInt(api_response.count_channels), results);
-            } else {
-                callback(api_response.success, api_response.version, api_response.timestamp, api_response.errors);
-            }
-        }).send();
+            }).send();
+        });
     }
 
-    // callback(success, version, timestamp, erros, page, results_per_page, total_presets, count_presets, presets)
-    this.get_presets = function(token, version, page, results_per_page, callback) {
-        callback = (typeof callback === 'function') ? callback : function() {};
-
+    this.get_presets = function (token, version, page, results_per_page) {
         var params = {
             'page': page,
             'results_per_page': results_per_page,
         }
 
-        this.requestFactory("get_presets", version, token, params, function(api_response) {
-            if(api_response.success == 1) {
-                var results = new Object();
-                if (parseInt(api_response.count_presets) > 0) {
-                    results = api_response.connection_presets.connection_preset;
+        return new Promise((resolve, reject) => {
+            this.requestFactory("get_presets", version, token, params, function (api_response) {
+                if (api_response.success == 1) {
+                    var results = new Object();
+                    if (parseInt(api_response.count_presets) > 0) {
+                        results = api_response.connection_presets.connection_preset;
+                    }
+                    resolve({ success: api_response.success, presets: results });
+                } else {
+                    reject();
                 }
-                callback(api_response.success, api_response.version, api_response.timestamp, null, parseInt(api_response.page), parseInt(api_response.results_per_page), parseInt(api_response.total_presets), parseInt(api_response.count_presets), results);
-            } else {
-                callback(api_response.success, api_response.version, api_response.timestamp, api_response.errors);
-            }
-        }).send();
+            }).send();
+        })
     }
 
-    this.connect_channel = function(token, version, c_id, rx_id, view_only, exclusive, callback) {
-        callback = (typeof callback === 'function') ? callback : function() {};
-
+    this.connect_channel = function (token, version, c_id, rx_id, view_only, exclusive) {
         var params = {
             'c_id': c_id,
             'rx_id': rx_id,
@@ -196,17 +192,19 @@ function AIMServer(serverURL) {
             'exclusive': exclusive
         }
 
-        this.requestFactory("connect_channel", version, token, params, function(api_response) {
-            if(api_response.success == 1) {
-                callback(api_response.success, api_response.version, api_response.timestamp, null);
-            } else {
-                callback(api_response.success, api_response.version, api_response.timestamp, api_response.errors);
-            }
-        }).send();
+        return new Promise((resolve, reject) => {
+            this.requestFactory("connect_channel", version, token, params, function (api_response) {
+                if (api_response.success == 1) {
+                    resolve();
+                } else {
+                    reject();
+                }
+            }).send();
+        });
     }
 
-    this.connect_preset = function(token, version, id, view_only, exclusive, force, callback) {
-        callback = (typeof callback === 'function') ? callback : function() {};
+    this.connect_preset = function (token, version, id, view_only, exclusive, force, callback) {
+        callback = (typeof callback === 'function') ? callback : function () { };
 
         var params = {
             'id': id,
@@ -215,8 +213,8 @@ function AIMServer(serverURL) {
             'force': force
         }
 
-        this.requestFactory("connect_preset", version, token, params, function(api_response) {
-            if(api_response.success == 1) {
+        this.requestFactory("connect_preset", version, token, params, function (api_response) {
+            if (api_response.success == 1) {
                 callback(api_response.success, api_response.version, api_response.timestamp, null);
             } else {
                 callback(api_response.success, api_response.version, api_response.timestamp, api_response.errors);
@@ -224,16 +222,16 @@ function AIMServer(serverURL) {
         }).send();
     }
 
-    this.disconnect_channel = function(token, version, rx_id, force, callback) {
-        callback = (typeof callback === 'function') ? callback : function() {};
+    this.disconnect_channel = function (token, version, rx_id, force, callback) {
+        callback = (typeof callback === 'function') ? callback : function () { };
 
         var params = {
             'rx_id': rx_id,
             'force': force
         }
 
-        this.requestFactory("disconnect_channel", version, token, params, function(api_response) {
-            if(api_response.success == 1) {
+        this.requestFactory("disconnect_channel", version, token, params, function (api_response) {
+            if (api_response.success == 1) {
                 callback(api_response.success, api_response.version, api_response.timestamp, null);
             } else {
                 callback(api_response.success, api_response.version, api_response.timestamp, api_response.errors);
@@ -241,16 +239,16 @@ function AIMServer(serverURL) {
         }).send();
     }
 
-    this.disconnect_preset = function(token, version, id, force, callback) {
-        callback = (typeof callback === 'function') ? callback : function() {};
+    this.disconnect_preset = function (token, version, id, force, callback) {
+        callback = (typeof callback === 'function') ? callback : function () { };
 
         var params = {
             'id': id,
             'force': force
         }
 
-        this.requestFactory("disconnect_preset", version, token, params, function(api_response) {
-            if(api_response.success == 1) {
+        this.requestFactory("disconnect_preset", version, token, params, function (api_response) {
+            if (api_response.success == 1) {
                 callback(api_response.success, api_response.version, api_response.timestamp, null);
             } else {
                 callback(api_response.success, api_response.version, api_response.timestamp, api_response.errors);
@@ -258,8 +256,8 @@ function AIMServer(serverURL) {
         }).send();
     }
 
-    this.create_preset = function(token, version, name, pairs, allowed, callback) {
-        callback = (typeof callback === 'function') ? callback : function() {};
+    this.create_preset = function (token, version, name, pairs, allowed, callback) {
+        callback = (typeof callback === 'function') ? callback : function () { };
 
         var params = {
             'name': name,
@@ -267,8 +265,8 @@ function AIMServer(serverURL) {
             'allowed': allowed
         }
 
-        this.requestFactory("create_preset", version, token, params, function(api_response) {
-            if(api_response.success == 1) {
+        this.requestFactory("create_preset", version, token, params, function (api_response) {
+            if (api_response.success == 1) {
                 callback(api_response.success, api_response.version, api_response.timestamp, null, parseInt(api_response.id));
             } else {
                 callback(api_response.success, api_response.version, api_response.timestamp, api_response.errors, null);
@@ -276,15 +274,15 @@ function AIMServer(serverURL) {
         }).send();
     }
 
-    this.delete_preset = function(token, version, id, callback) {
-        callback = (typeof callback === 'function') ? callback : function() {};
+    this.delete_preset = function (token, version, id, callback) {
+        callback = (typeof callback === 'function') ? callback : function () { };
 
         var params = {
             'id': id
         }
 
-        this.requestFactory("delete_preset", version, token, params, function(api_response) {
-            if(api_response.success == 1) {
+        this.requestFactory("delete_preset", version, token, params, function (api_response) {
+            if (api_response.success == 1) {
                 callback(api_response.success, api_response.version, api_response.timestamp, null);
             } else {
                 callback(api_response.success, api_response.version, api_response.timestamp, api_response.errors);
@@ -292,26 +290,26 @@ function AIMServer(serverURL) {
         }).send();
     }
 
-    this.create_channel = function(token, version, name, desc, loc, allowed, video1, video1head, video2, video2head, audio, usb, serial, groupname, callback) {
-        callback = (typeof callback === 'function') ? callback : function() {};
+    this.create_channel = function (token, version, name, desc, loc, allowed, video1, video1head, video2, video2head, audio, usb, serial, groupname, callback) {
+        callback = (typeof callback === 'function') ? callback : function () { };
 
         var params = {
-            "name": name, 
-            "desc": desc, 
-            "loc": loc, 
-            "allowed": allowed, 
-            "video1": video1, 
-            "video1head": video1head, 
-            "video2": video2, 
-            "video2head": video2head, 
-            "auido": audio, 
-            "usb": usb, 
-            "serial": serial, 
+            "name": name,
+            "desc": desc,
+            "loc": loc,
+            "allowed": allowed,
+            "video1": video1,
+            "video1head": video1head,
+            "video2": video2,
+            "video2head": video2head,
+            "auido": audio,
+            "usb": usb,
+            "serial": serial,
             "groupname": groupname
         }
 
-        this.requestFactory("create_channel", version, token, params, function(api_response) {
-            if(api_response.success == 1) {
+        this.requestFactory("create_channel", version, token, params, function (api_response) {
+            if (api_response.success == 1) {
                 callback(api_response.success, api_response.version, api_response.timestamp, null, parseInt(api_response.id));
             } else {
                 callback(api_response.success, api_response.version, api_response.timestamp, api_response.errors, null);
@@ -319,15 +317,15 @@ function AIMServer(serverURL) {
         }).send();
     }
 
-    this.delete_channel = function(token, version, id, callback) {
-        callback = (typeof callback === 'function') ? callback : function() {};
+    this.delete_channel = function (token, version, id, callback) {
+        callback = (typeof callback === 'function') ? callback : function () { };
 
         var params = {
             'id': id
         }
 
-        this.requestFactory("delete_channel", version, token, params, function(api_response) {
-            if(api_response.success == 1) {
+        this.requestFactory("delete_channel", version, token, params, function (api_response) {
+            if (api_response.success == 1) {
                 callback(api_response.success, api_response.version, api_response.timestamp, null);
             } else {
                 callback(api_response.success, api_response.version, api_response.timestamp, api_response.errors);
@@ -335,8 +333,8 @@ function AIMServer(serverURL) {
         }).send();
     }
 
-    this.update_device = function(token, version, id, desc, loc, callback) {
-        callback = (typeof callback === 'function') ? callback : function() {};
+    this.update_device = function (token, version, id, desc, loc, callback) {
+        callback = (typeof callback === 'function') ? callback : function () { };
 
         var params = {
             'id': id,
@@ -344,8 +342,8 @@ function AIMServer(serverURL) {
             "loc": loc
         }
 
-        this.requestFactory("update_device", version, token, params, function(api_response) {
-            if(api_response.success == 1) {
+        this.requestFactory("update_device", version, token, params, function (api_response) {
+            if (api_response.success == 1) {
                 callback(api_response.success, api_response.version, api_response.timestamp, null);
             } else {
                 callback(api_response.success, api_response.version, api_response.timestamp, api_response.errors);
@@ -353,14 +351,14 @@ function AIMServer(serverURL) {
         }).send();
     }
 
-    this.get_all_c_usb = function(token, version, callback) {
-        callback = (typeof callback === 'function') ? callback : function() {};
+    this.get_all_c_usb = function (token, version, callback) {
+        callback = (typeof callback === 'function') ? callback : function () { };
 
         var params = {
         }
 
-        this.requestFactory("get_all_c_usb", version, token, params, function(api_response) {
-            if(api_response.success == 1) {
+        this.requestFactory("get_all_c_usb", version, token, params, function (api_response) {
+            if (api_response.success == 1) {
                 var results = new Object();
                 if (parseInt(api_response.count_c_usbs) > 0) {
                     results = api_response.c_usb_lan_extenders.c_usb;
@@ -372,15 +370,15 @@ function AIMServer(serverURL) {
         }).send();
     }
 
-    this.delete_c_usb = function(token, version, mac, callback) {
-        callback = (typeof callback === 'function') ? callback : function() {};
+    this.delete_c_usb = function (token, version, mac, callback) {
+        callback = (typeof callback === 'function') ? callback : function () { };
 
         var params = {
             'mac': mac
         }
 
-        this.requestFactory("delete_c_usb", version, token, params, function(api_response) {
-            if(api_response.success == 1) {
+        this.requestFactory("delete_c_usb", version, token, params, function (api_response) {
+            if (api_response.success == 1) {
                 callback(api_response.success, api_response.version, api_response.timestamp, null);
             } else {
                 callback(api_response.success, api_response.version, api_response.timestamp, api_response.errors);
@@ -388,16 +386,16 @@ function AIMServer(serverURL) {
         }).send();
     }
 
-    this.update_c_usb = function(token, version, mac, name, callback) {
-        callback = (typeof callback === 'function') ? callback : function() {};
+    this.update_c_usb = function (token, version, mac, name, callback) {
+        callback = (typeof callback === 'function') ? callback : function () { };
 
         var params = {
             'mac': mac,
             "name": name
         }
 
-        this.requestFactory("update_c_usb", version, token, params, function(api_response) {
-            if(api_response.success == 1) {
+        this.requestFactory("update_c_usb", version, token, params, function (api_response) {
+            if (api_response.success == 1) {
                 callback(api_response.success, api_response.version, api_response.timestamp, null);
             } else {
                 callback(api_response.success, api_response.version, api_response.timestamp, api_response.errors);
@@ -405,16 +403,16 @@ function AIMServer(serverURL) {
         }).send();
     }
 
-    this.connect_c_usb = function(token, version, rx, tx, callback) {
-        callback = (typeof callback === 'function') ? callback : function() {};
+    this.connect_c_usb = function (token, version, rx, tx, callback) {
+        callback = (typeof callback === 'function') ? callback : function () { };
 
         var params = {
             'rx': rx,
             'tx': tx
         }
 
-        this.requestFactory("connect_c_usb", version, token, params, function(api_response) {
-            if(api_response.success == 1) {
+        this.requestFactory("connect_c_usb", version, token, params, function (api_response) {
+            if (api_response.success == 1) {
                 callback(api_response.success, api_response.version, api_response.timestamp, null);
             } else {
                 callback(api_response.success, api_response.version, api_response.timestamp, api_response.errors);
@@ -422,15 +420,15 @@ function AIMServer(serverURL) {
         }).send();
     }
 
-    this.disconnect_c_usb = function(token, version, mac, callback) {
-        callback = (typeof callback === 'function') ? callback : function() {};
+    this.disconnect_c_usb = function (token, version, mac, callback) {
+        callback = (typeof callback === 'function') ? callback : function () { };
 
         var params = {
             'mac': mac
         }
 
-        this.requestFactory("disconnect_c_usb", version, token, params, function(api_response) {
-            if(api_response.success == 1) {
+        this.requestFactory("disconnect_c_usb", version, token, params, function (api_response) {
+            if (api_response.success == 1) {
                 callback(api_response.success, api_response.version, api_response.timestamp, null);
             } else {
                 callback(api_response.success, api_response.version, api_response.timestamp, api_response.errors);

@@ -51,76 +51,75 @@
 
 	//Listener for monitor events
 	var handled = false;
-	$(document).on("touchend click", ".fa-desktop", function(e){
-	    e.stopImmediatePropagation();
-	    if(e.type == "touchend") {
-	        handled = true;
-	    }
-	    else if(e.type == "click" && !handled) {
-	    }
-	    else {
-	        handled = false;
-	    }
+	$(document).on("touchend click", ".fa-desktop", function (e) {
+		e.stopImmediatePropagation();
+		if (e.type == "touchend") {
+			handled = true;
+		}
+		else if (e.type == "click" && !handled) {
+		}
+		else {
+			handled = false;
+		}
 	});
 
 	//Listener for swap arrow events
 	var swapped = false;
-	$(document).on("touchend click", ".fa-arrows-h", function(e){
-	    e.stopImmediatePropagation();
-	    if(e.type == "touchend") {
-	        swapped = true;
-	        handleIt(e);
-	    }
-	    else if(e.type == "click" && !swapped) {
-	        handleIt(e);
-	    }
-	    else {
-	        swapped = false;
-	    }
+	$(document).on("touchend click", ".fa-arrows-h", function (e) {
+		e.stopImmediatePropagation();
+		if (e.type == "touchend") {
+			swapped = true;
+			handleIt(e);
+		}
+		else if (e.type == "click" && !swapped) {
+			handleIt(e);
+		}
+		else {
+			swapped = false;
+		}
 	});
 	var channeled = false;
-	$(document).on("touchend click", "#channels li", function(e) {
+	$(document).on("touchend click", "#channels li", function (e) {
 		e.stopImmediatePropagation();
-	    if(e.type == "touchend") {
-	        channeled = true;
-	        handleChannelChange(e);
-	    }
-	    else if(e.type == "click" && !channeled) {
-	        handleChannelChange(e);
-	    }
-	    else {
-	        channeled = false;
-	    }
+		if (e.type == "touchend") {
+			channeled = true;
+			handleChannelChange(e);
+		}
+		else if (e.type == "click" && !channeled) {
+			handleChannelChange(e);
+		}
+		else {
+			channeled = false;
+		}
 	});
 	var pre = false;
-	$(document).on("touchend click", "#presets li", function(e) {
+	$(document).on("touchend click", "#presets li", function (e) {
 		e.stopImmediatePropagation();
-	    if(e.type == "touchend") {
-	        pre = true;
-	        handlePreset(e);
-	    }
-	    else if(e.type == "click" && !pre) {
-	        handlePreset(e);
-	    }
-	    else {
-	        pre = false;
-	    }
+		if (e.type == "touchend") {
+			pre = true;
+			handlePreset(e);
+		}
+		else if (e.type == "click" && !pre) {
+			handlePreset(e);
+		}
+		else {
+			pre = false;
+		}
 	});
 
-	function handleIt(e) {
-		var leftEle = $('#'+e.target.dataset.left+' .channel-desc')[0];
-		var rightEle = $('#'+e.target.dataset.right+' .channel-desc')[0];
+	async function handleIt(e) {
+		var leftEle = $('#' + e.target.dataset.left + ' .channel-desc')[0];
+		var rightEle = $('#' + e.target.dataset.right + ' .channel-desc')[0];
 		var left = leftEle.innerHTML
-	    var right = rightEle.innerHTML;
-	    leftEle.innerHTML = right;
-	    rightEle.innerHTML = left;
-	    //call to api to switch the monitor channels here
-	    var receiverOneId = $(leftEle).attr('data-rxid');
-	    var receiverTwoId = $(rightEle).attr('data-rxid');
-	    var channelOneId = $(leftEle).attr('data-id');
-	    var channelTwoId = $(rightEle).attr('data-id');
-	    workspace.changeChannel(receiverOneId, channelTwoId);
-	    workspace.changeChannel(receiverTwoId, channelOneId);
+		var right = rightEle.innerHTML;
+		//call to api to switch the monitor channels here
+		var receiverOneId = $(leftEle).attr('data-rxid');
+		var receiverTwoId = $(rightEle).attr('data-rxid');
+		var channelOneId = $(leftEle).attr('data-id');
+		var channelTwoId = $(rightEle).attr('data-id');
+		await workspace.changeChannel(receiverOneId, channelTwoId, true);
+		await workspace.changeChannel(receiverTwoId, channelOneId, true);
+		workspace.get();
 	}
 	function handlePreset(e) {
 		//Remove the "selected" class from any li's in this modal
@@ -141,10 +140,10 @@
 		//Change the text labels accordingly
 		$('#channels').modal('hide');
 		var selector = $('#' + trigger.dataset.monitor + 'Monitor');
-		$(selector).find('span').replaceWith('<span class="channel-desc" data-rxid="" data-id="'+e.target.dataset.id+'" data-name="'+e.target.dataset.name+'" data-desc="'+e.target.dataset.desc+'">'+e.target.dataset.desc+'</span>');
+		$(selector).find('span').replaceWith('<span class="channel-desc" data-rxid="" data-id="' + e.target.dataset.id + '" data-name="' + e.target.dataset.name + '" data-desc="' + e.target.dataset.desc + '">' + e.target.dataset.desc + '</span>');
 		//Update the monitorSetup object to reflect this change
 		var thisMon = $(trigger.parentElement).find('i').attr('data-monitor');
-		
+
 		monitorSetup[thisMon].desc = e.target.dataset.desc;
 		monitorSetup[thisMon].id = e.target.dataset.id;
 		monitorSetup[thisMon].name = e.target.dataset.name;
@@ -158,9 +157,10 @@
 		updateChannels();
 		updatePresets();
 		updateMonitors();
+
 		//TODO QUESTION: Set a default preset?
 		// preset = presets[0];
-		
+
 		//TODO QUESTION: Do we want to let the monitor come up as left or set default preset?
 		// workspace.changePreset(preset.cp_id);
 
@@ -168,26 +168,26 @@
 
 	//Find channel helper function
 	function findChannel(e) {
-		for (var i=0;i<channels.length;i++) {
+		for (var i = 0; i < channels.length; i++) {
 			if (channels[i].id === e) {
 				return channels[i];
 			}
 		}
 	}
 
-	function updateChannels() {
+	function updateChannels(selectedChanneiId) {
 		var sel = $('#channels .selected');
 		$('#channels ul li').remove();
-		for (i=0;i<channels.length;i++) {
-			if (sel.length>0) {
-				selId = sel[0].dataset.id;
-				if (channels[i].c_id===selId) {
-					var chan = '<li class="selected" data-id="'+channels[i].c_id+'" data-name="'+channels[i].c_name+'" data-desc="'+channels[i].c_description+'">'+channels[i].c_description+'</li>';
+		for (i = 0; i < channels.length; i++) {
+			if (sel.length > 0) {
+				selId = selectedChanneiId || sel[0].dataset.id;
+				if (channels[i].c_id === selId) {
+					var chan = '<li class="selected" data-id="' + channels[i].c_id + '" data-name="' + channels[i].c_name + '" data-desc="' + channels[i].c_description + '">' + channels[i].c_description + '</li>';
 				} else {
-					var chan = '<li data-id="'+channels[i].c_id+'" data-name="'+channels[i].c_name+'" data-desc="'+channels[i].c_description+'">'+channels[i].c_description+'</li>';
+					var chan = '<li data-id="' + channels[i].c_id + '" data-name="' + channels[i].c_name + '" data-desc="' + channels[i].c_description + '">' + channels[i].c_description + '</li>';
 				}
 			} else {
-				var chan = '<li data-id="'+channels[i].c_id+'" data-name="'+channels[i].c_name+'" data-desc="'+channels[i].c_description+'">'+channels[i].c_description+'</li>';
+				var chan = '<li data-id="' + channels[i].c_id + '" data-name="' + channels[i].c_name + '" data-desc="' + channels[i].c_description + '">' + channels[i].c_description + '</li>';
 			}
 			$('#channels ul').append(chan);
 		}
@@ -195,15 +195,15 @@
 
 	function updatePresets() {
 		$('#presets ul li').remove();
-		for (i=0;i<presets.length;i++) {
+		for (i = 0; i < presets.length; i++) {
 			if (typeof preset !== 'undefined') {
-				if (preset.cp_id===presets[i].cp_id) {
-					var pre = '<li class="selected" data-name="'+presets[i].cp_id+'">'+presets[i].cp_name+'</li>';
+				if (preset.cp_id === presets[i].cp_id) {
+					var pre = '<li class="selected" data-name="' + presets[i].cp_id + '">' + presets[i].cp_name + '</li>';
 				} else {
-					var pre = '<li data-name="'+presets[i].cp_id+'">'+presets[i].cp_name+'</li>';
+					var pre = '<li data-name="' + presets[i].cp_id + '">' + presets[i].cp_name + '</li>';
 				}
 			} else {
-				var pre = '<li data-name="'+presets[i].cp_id+'">'+presets[i].cp_name+'</li>';
+				var pre = '<li data-name="' + presets[i].cp_id + '">' + presets[i].cp_name + '</li>';
 			}
 			$('#presets ul').append(pre);
 		}
@@ -211,7 +211,7 @@
 
 	function updateMonitors() {
 		if (receivers[0]) {
-			monitorSetup.left={};
+			monitorSetup.left = {};
 			monitorSetup.left.rxid = receivers[0].d_id;
 			if (receivers[0].channel) {
 				monitorSetup.left.id = receivers[0].channel.c_id;
@@ -231,7 +231,7 @@
 			leftSpan.html(monitorSetup.left.desc);
 		}
 		if (receivers[1]) {
-			monitorSetup.right={};
+			monitorSetup.right = {};
 			monitorSetup.right.rxid = receivers[1].d_id;
 			if (receivers[1].channel) {
 				monitorSetup.right.id = receivers[1].channel.c_id;
@@ -251,7 +251,7 @@
 			rightSpan.html(monitorSetup.right.desc);
 		}
 		if (receivers[2]) {
-			monitorSetup.top={};
+			monitorSetup.top = {};
 			monitorSetup.top.rxid = receivers[2].d_id;
 			if (receivers[2].channel) {
 				monitorSetup.top.id = receivers[2].channel.c_id;
