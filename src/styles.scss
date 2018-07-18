@@ -1,0 +1,74 @@
+:local {
+  .loading-spinner {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    position: absolute;
+    left: 0;
+    top: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(0, 0, 0, 0.2);
+  }
+
+  .app {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    text-align: center;
+  }
+
+  .layout-presets-button {
+    padding: 10px 16px;
+    margin-bottom: 40px;
+    border: none;
+    border-radius: 10px;
+    background: #607d8b;
+    font-size: 20px;
+    color: white;
+    cursor: pointer;
+
+    &:focus {
+      outline: none;
+    }
+  }
+
+  .container {
+    width: 100%;
+    max-width: 750px;
+    margin: 40px;
+  }
+
+  .top-row {
+    display: flex;
+    width: 100%;
+    justify-content: center;
+  }
+
+  .middle-row {
+    display: flex;
+    width: 100%;
+    margin-bottom: 40px;
+    justify-content: space-around;
+  }
+
+  .bottom-row {
+    display: flex;
+    width: 100%;
+    justify-content: space-between;
+  }
+
+  .swap-right-top {
+    margin-top: 4px;
+    transform: rotate(45deg);
+  }
+
+  .swap-top-left {
+    margin-bottom: 4px;
+    transform: rotate(135deg);
+  }
+
+  .swap-left-right {
+    margin: 0 40px;
+  }
+}
