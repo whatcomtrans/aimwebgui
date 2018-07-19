@@ -1,8 +1,10 @@
 {
-    "apps": [
-      {
-        "name": "aimwebgui",
-        "script": "./bin/www"
-      }
-    ]
+	"apps": [{
+		"name": "aimwebgui-test",
+		"script": "serve",
+		"env": {
+			"PM2_SERVE_PATH": "./build",
+			"PM2_SERVE_PORT": 3031
+		}
+	}]
 }
