@@ -1,4 +1,4 @@
-const aimApiBaseUrl = "http://localhost:3000/v1";
+const aimApiBaseUrl = "http://srvwebnode3:3030/v1";
 let token = "";
 
 function buildQueryString(parameters) {
