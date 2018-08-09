@@ -275,6 +275,10 @@ class App extends Component {
     });
   };
 
+  refresh = () => {
+    window.location.reload();
+  };
+
   render() {
     const {
       receiverOne,
@@ -292,9 +296,12 @@ class App extends Component {
 
     if (error) {
       return (
-        <div>
+        <div className={styles.error}>
           <div>Context: {error.context}</div>
           <div>Error: {error.message}</div>
+          <button className={styles.refreshButton} onClick={this.refresh}>
+            Refresh
+          </button>
         </div>
       );
     }
