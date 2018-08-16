@@ -1,6 +1,6 @@
 {
 	"apps": [{
-		"name": "aimwebgui-test",
+		"name": "aimwebgui",
 		"script": "serve",
 		"env": {
 			"PM2_SERVE_PATH": "./build",
