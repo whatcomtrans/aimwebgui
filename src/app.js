@@ -1,10 +1,11 @@
-import React, { Component } from "react";
+import React, { Component, Fragment } from "react";
 import { ChannelsModal, PresetsModal } from "./components/modal";
 import MonitorSet from "./components/monitorSet";
 import SwapButton from "./components/swapButton";
 import LoadingSpinner from "./components/loadingSpinner";
 import {
   login,
+  dispatchVideoLogin,
   getChannels,
   getDevices,
   getPresets,
@@ -13,6 +14,10 @@ import {
 } from "./aimApiClient";
 import styles from "./styles.scss";
 
+const dispatchVideoUser = "d1";
+const dispatchVideoDeviceOne = "DVIDRX1";
+const dispatchVideoDeviceTwo = "DVIDRX2";
+
 class App extends Component {
   constructor(props) {
     super(props);
@@ -20,6 +25,8 @@ class App extends Component {
       receiverOne: null,
       receiverTwo: null,
       receiverThree: null,
+      receiverVideoOne: null,
+      receiverVideoTwo: null,
       isChannelsModalOpen: false,
       modalReceiver: null,
       isPresetsModalOpen: false,
@@ -31,12 +38,20 @@ class App extends Component {
   async componentDidMount() {
     this.setState({ isLoading: true });
     const queryString = new URLSearchParams(window.location.search);
-    const { error: loginError } = await login(queryString.get("id"), "");
+    const id = queryString.get("id");
+    const { error: loginError } = await login(id, "");
+    const { error: dispatchVideoLoginError } = await dispatchVideoLogin(
+      dispatchVideoUser,
+      ""
+    );
 
-    if (loginError) {
+    if (loginError || dispatchVideoLoginError) {
       this.setState({
         isLoading: false,
-        error: { context: "componentDidMount.login", message: loginError },
+        error: {
+          context: "componentDidMount.login",
+          message: loginError || dispatchVideoLoginError,
+        },
       });
       return;
     }
@@ -56,10 +71,13 @@ class App extends Component {
       return;
     }
 
-    const { receiverOne, receiverTwo, receiverThree } = this.mapReceivers(
-      devices,
-      channels
-    );
+    const {
+      receiverOne,
+      receiverTwo,
+      receiverThree,
+      receiverVideoOne,
+      receiverVideoTwo,
+    } = this.mapReceivers(devices, channels);
 
     this.setState({
       devices,
@@ -68,6 +86,8 @@ class App extends Component {
       receiverOne,
       receiverTwo,
       receiverThree,
+      receiverVideoOne,
+      receiverVideoTwo,
       isLoading: false,
     });
   }
@@ -95,9 +115,17 @@ class App extends Component {
     const deviceOne = devices[0];
     const deviceTwo = devices[1];
     const deviceThree = devices[2];
+    const deviceVideoOne = devices.find(
+      d => d.d_name === dispatchVideoDeviceOne
+    );
+    const deviceVideoTwo = devices.find(
+      d => d.d_name === dispatchVideoDeviceTwo
+    );
     let receiverOne;
     let receiverTwo;
     let receiverThree;
+    let receiverVideoOne;
+    let receiverVideoTwo;
 
     if (deviceOne) {
       const deviceChannel = channels.find(
@@ -132,21 +160,73 @@ class App extends Component {
         channel => deviceThree.c_name === channel.c_name
       );
 
-      receiverThree = {
-        deviceId: deviceThree.d_id,
-        deviceName: deviceThree.d_name,
+      if (deviceChannel) {
+        receiverThree = {
+          deviceId: deviceThree.d_id,
+          deviceName: deviceThree.d_name,
+          channelId: deviceChannel.c_id,
+          channelName: deviceThree.c_name,
+          channelDescription: deviceChannel.c_description,
+        };
+      }
+    }
+
+    if (deviceVideoOne) {
+      const deviceChannel = channels.find(
+        channel => deviceVideoOne.c_name === channel.c_name
+      );
+
+      receiverVideoOne = {
+        deviceId: deviceVideoOne.d_id,
+        deviceName: deviceVideoOne.d_name,
         channelId: deviceChannel.c_id,
-        channelName: deviceThree.c_name,
+        channelName: deviceVideoOne.c_name,
         channelDescription: deviceChannel.c_description,
       };
     }
 
-    return { receiverOne, receiverTwo, receiverThree };
+    if (deviceVideoTwo) {
+      const deviceChannel = channels.find(
+        channel => deviceVideoTwo.c_name === channel.c_name
+      );
+
+      receiverVideoTwo = {
+        deviceId: deviceVideoTwo.d_id,
+        deviceName: deviceVideoTwo.d_name,
+        channelId: deviceChannel.c_id,
+        channelName: deviceVideoTwo.c_name,
+        channelDescription: deviceChannel.c_description,
+      };
+    }
+
+    return {
+      receiverOne,
+      receiverTwo,
+      receiverThree,
+      receiverVideoOne,
+      receiverVideoTwo,
+    };
   };
 
   selectChannel = async (channelId, deviceId) => {
     this.setState({ isLoading: true, isChannelsModalOpen: false });
-    const response = await connectChannel(channelId, deviceId);
+    const {
+      receiverVideoOne: { deviceId: dispatchVideoDeviceOneId },
+      receiverVideoTwo: { deviceId: dispatchVideoDeviceTwoId },
+    } = this.state;
+    let useDispatchVideoToken = false;
+    if (
+      deviceId === dispatchVideoDeviceOneId ||
+      deviceId === dispatchVideoDeviceTwoId
+    ) {
+      useDispatchVideoToken = true;
+    }
+
+    const response = await connectChannel(
+      channelId,
+      deviceId,
+      useDispatchVideoToken
+    );
     if (response && response.error) {
       this.setState({
         isLoading: false,
@@ -171,16 +251,21 @@ class App extends Component {
     }
 
     const { channels } = this.state;
-    const { receiverOne, receiverTwo, receiverThree } = this.mapReceivers(
-      devices,
-      channels
-    );
+    const {
+      receiverOne,
+      receiverTwo,
+      receiverThree,
+      receiverVideoOne,
+      receiverVideoTwo,
+    } = this.mapReceivers(devices, channels);
 
     this.setState({
       devices,
       receiverOne,
       receiverTwo,
       receiverThree,
+      receiverVideoOne,
+      receiverVideoTwo,
       isLoading: false,
     });
   };
@@ -284,6 +369,8 @@ class App extends Component {
       receiverOne,
       receiverTwo,
       receiverThree,
+      receiverVideoOne,
+      receiverVideoTwo,
       channels,
       devices,
       presets,
@@ -323,27 +410,45 @@ class App extends Component {
           >
             Layout Presets
           </button>
-          <div className={styles.topRow}>
+          <div className={styles.sharedDisplays}>
             <MonitorSet
-              receiver={receiverThree}
+              receiver={receiverVideoOne}
               openChannelsModal={this.openChannelsModal}
+              monitorWidth="150"
+              monitorHeight="150"
+            />
+            <MonitorSet
+              receiver={receiverVideoTwo}
+              openChannelsModal={this.openChannelsModal}
+              monitorWidth="150"
+              monitorHeight="150"
             />
           </div>
-          <div className={styles.middleRow}>
-            <SwapButton
-              className={styles.swapTopLeft}
-              swapChannels={() => {
-                this.swapChannels(receiverOne, receiverThree);
-              }}
-            />
-            <div className={styles.spacer} />
-            <SwapButton
-              className={styles.swapRightTop}
-              swapChannels={() => {
-                this.swapChannels(receiverTwo, receiverThree);
-              }}
-            />
-          </div>
+          {receiverThree && (
+            <Fragment>
+              <div className={styles.topRow}>
+                <MonitorSet
+                  receiver={receiverThree}
+                  openChannelsModal={this.openChannelsModal}
+                />
+              </div>
+              <div className={styles.middleRow}>
+                <SwapButton
+                  className={styles.swapTopLeft}
+                  swapChannels={() => {
+                    this.swapChannels(receiverOne, receiverThree);
+                  }}
+                />
+                <div className={styles.spacer} />
+                <SwapButton
+                  className={styles.swapRightTop}
+                  swapChannels={() => {
+                    this.swapChannels(receiverTwo, receiverThree);
+                  }}
+                />
+              </div>
+            </Fragment>
+          )}
           <div className={styles.bottomRow}>
             <div className={styles.left}>
               <MonitorSet

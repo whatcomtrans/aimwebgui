@@ -81,4 +81,10 @@
     margin-top: 20px;
     cursor: pointer;
   }
+
+  .shared-displays {
+    display: flex;
+    justify-content: space-between;
+    margin-bottom: 40px;
+  }
 }

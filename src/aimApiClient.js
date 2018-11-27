@@ -1,5 +1,6 @@
 const aimApiBaseUrl = "http://srvwebnode3:3030/v1";
 let token = "";
+let dispatchVideoToken = "";
 
 function buildQueryString(parameters) {
   return Object.keys(parameters).reduce((acc, cur, idx, arr) => {
@@ -26,6 +27,24 @@ async function fetchJson(url, { method, body } = {}) {
   }
   const json = await response.json();
   return json;
+}
+
+export async function dispatchVideoLogin(username, password) {
+  const response = await fetchJson(`${aimApiBaseUrl}/login`, {
+    method: "POST",
+    body: {
+      username,
+      password,
+    },
+  });
+
+  if (response.error) {
+    return { error: response.error };
+  }
+
+  dispatchVideoToken = response.token;
+
+  return response;
 }
 
 export async function login(username, password) {
@@ -80,10 +99,14 @@ export async function getPresets(query) {
   return response;
 }
 
-export async function connectChannel(channelId, deviceId) {
+export async function connectChannel(
+  channelId,
+  deviceId,
+  useDispatchVideoToken
+) {
   const response = await fetchJson(
     `${aimApiBaseUrl}/channels/${channelId}/connect${buildQueryString({
-      token,
+      token: useDispatchVideoToken ? dispatchVideoToken : token,
       deviceId,
     })}`,
     {
