@@ -155,7 +155,8 @@ class App extends Component {
       };
     }
 
-    if (deviceThree) {
+    // Dispatch 5 only has two receivers
+    if (deviceThree && deviceOne.d_name.indexOf("D5RX") === -1) {
       const deviceChannel = channels.find(
         channel => deviceThree.c_name === channel.c_name
       );
