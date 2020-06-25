@@ -139,7 +139,7 @@ class App extends Component {
     const deviceOne = devices[0];
     const deviceTwo = devices[1];
     const deviceThree = devices[2];
-    const deviceFour = devices[4];
+    const deviceFour = devices[3];
     const deviceVideoOne = devices.find(
       (d) => d.d_name === dispatchVideoDeviceOne
     );
