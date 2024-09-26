@@ -8,5 +8,5 @@ React app for switching console displays via the AIM API. Served via a static fi
 - `layout` [optional] - Layout name (`2x4`, or defaults to triangle layout)
 
 ## Deployment
-
+' npm install --legacy-peer-deps` to install dependencies
 `npm run build` to generate build directory and move to appropriate location based on `PM2_SERVE_PATH` defined in `pm2.json`
