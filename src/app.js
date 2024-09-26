@@ -66,12 +66,22 @@ class App extends Component {
     }
 
     const { devices, error: getDevicesError } = await getDevices();
+    console.log(devices);
+    //get rid of any devices without a c_name
+    let i = devices.length;
+    while(i--) {
+      if(devices[i].c_name==="") {
+        devices.splice(i, 1);
+      }
+    }
+    console.log(devices);
     const { devices: allDevices, error: getAllDevicesError } = await getDevices(
       {
         useAIM_DispatchutilsToken: true,
       }
     );
     const { channels, error: getChannelsError } = await getChannels();
+    console.log(channels);
     const { presets, error: getPresetsError } = await getPresets();
 
     if (
@@ -136,6 +146,15 @@ class App extends Component {
   };
 
   mapReceivers = (devices, channels) => {
+    //filter down devices list
+    //get rid of any devices without a c_name
+    let i = devices.length;
+    while(i--) {
+      if(devices[i].c_name==="") {
+        devices.splice(i, 1);
+      }
+    }
+    console.log(devices);
     const deviceOne = devices[0];
     const deviceTwo = devices[1];
     const deviceThree = devices[2];
@@ -157,6 +176,7 @@ class App extends Component {
       const deviceChannel = channels.find(
         (channel) => deviceOne.c_name === channel.c_name
       );
+      console.log(deviceChannel);
 
       receiverOne = {
         deviceId: deviceOne.d_id,
@@ -182,7 +202,8 @@ class App extends Component {
     }
 
     // Dispatch 5 only has two receivers
-    if (deviceThree && deviceOne.d_name.indexOf("D5RX") === -1) {
+    // if (deviceThree && deviceOne.d_name.indexOf("D5RX") === -1) {
+    if (deviceThree) {
       const deviceChannel = channels.find(
         (channel) => deviceThree.c_name === channel.c_name
       );
@@ -199,7 +220,8 @@ class App extends Component {
     }
 
     // Dispatch 5 only has two receivers
-    if (deviceFour && deviceOne.d_name.indexOf("D5RX") === -1) {
+    // if (deviceFour && deviceOne.d_name.indexOf("D5RX") === -1) {
+    if (deviceFour) {
       const deviceChannel = channels.find(
         (channel) => deviceFour.c_name === channel.c_name
       );
