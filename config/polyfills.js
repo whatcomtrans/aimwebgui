@@ -1,5 +1,24 @@
 "use strict";
 
+// IE11 polyfills - must be imported first
+require("react-app-polyfill/ie11");
+require("react-app-polyfill/stable");
+
+// Additional core-js polyfills for IE11 (v2 syntax)
+require("core-js/es6/map");
+require("core-js/es6/set");
+require("core-js/fn/array/find");
+require("core-js/fn/array/includes");
+require("core-js/fn/array/from");
+require("core-js/fn/object/assign");
+require("core-js/fn/object/values");
+require("core-js/fn/object/entries");
+require("core-js/fn/string/includes");
+require("core-js/fn/string/starts-with");
+require("core-js/fn/string/ends-with");
+require("core-js/es6/symbol");
+require("core-js/es6/promise");
+
 if (typeof Promise === "undefined") {
   // Rejection tracking prevents a common issue where React gets into an
   // inconsistent state due to an error, but it gets swallowed by a Promise,
@@ -21,5 +40,4 @@ if (process.env.NODE_ENV === "test") {
   require("raf").polyfill(global);
 }
 
-require("core-js/fn/array/find");
 require("url-search-params-polyfill");
