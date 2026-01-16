@@ -16,7 +16,7 @@
     "css-loader": "0.28.7",
     "dotenv": "4.0.0",
     "dotenv-expand": "4.2.0",
-    "eslint": "4.10.0",
+    "eslint": "9.15.0",
     "eslint-config-react-app": "^2.1.0",
     "eslint-loader": "1.9.0",
     "eslint-plugin-flowtype": "^2.39.1",
@@ -34,12 +34,12 @@
     "raf": "3.4.0",
     "react": "^16.4.0",
     "react-app-polyfill": "^1.0.6",
-    "react-dev-utils": "^5.0.3",
+    "react-dev-utils": "^12.0.1",
     "react-dom": "^16.13.1",
     "style-loader": "0.19.0",
     "url-loader": "0.6.2",
     "url-search-params-polyfill": "^4.0.1",
-    "webpack": "3.8.1",
+    "webpack": "5.96.1",
     "webpack-dev-server": "2.9.4",
     "whatwg-fetch": "2.0.3"
   },
@@ -50,9 +50,9 @@
     "test": "node scripts/test.js --env=jsdom"
   },
   "devDependencies": {
-    "cross-env": "^5.2.0",
+    "cross-env": "^7.0.3",
     "sass": "^1.78.0",
-    "nodemon": "^1.17.5",
+    "nodemon": "^3.1.7",
     "sass-loader": "^7.0.3"
   },
   "babel": {
