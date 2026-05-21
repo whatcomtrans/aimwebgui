@@ -90,6 +90,11 @@ export async function getDevices(useAIM_DispatchutilsToken = false) {
       token: useAIM_DispatchutilsToken ? AIM_DispatchutilsToken : token
     })}`
   );
+  console.log(`
+    ${aimApiBaseUrl}/devices${buildQueryString({
+      token: useAIM_DispatchutilsToken ? AIM_DispatchutilsToken : token
+    })}
+  `);
   // const response = await fetchJson(`http://aim.whatcomtrans.net/api/?v=2&method=get_devices&token=`+token);
 
   if (response.error) {

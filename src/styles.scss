@@ -54,4 +54,28 @@
     justify-content: space-between;
     margin-bottom: 40px;
   }
+
+  .config-warning {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 10px 16px;
+    background: #f5a623;
+    color: #000;
+    font-size: 14px;
+    z-index: 100;
+  }
+
+  .config-warning-dismiss {
+    background: none;
+    border: none;
+    font-size: 20px;
+    cursor: pointer;
+    padding: 0 4px;
+    line-height: 1;
+  }
 }

@@ -36,6 +36,7 @@ class App extends Component {
       isPresetsModalOpen: false,
       isLoading: false,
       error: null,
+      configWarning: null,
     };
   }
 
@@ -108,6 +109,7 @@ class App extends Component {
       receiverFour,
       receiverVideoOne,
       receiverVideoTwo,
+      configWarning,
     } = this.mapReceivers(devices, channels);
 
     this.setState({
@@ -122,6 +124,7 @@ class App extends Component {
       receiverFour,
       receiverVideoOne,
       receiverVideoTwo,
+      configWarning,
       isLoading: false,
     });
   }
@@ -154,11 +157,26 @@ class App extends Component {
         devices.splice(i, 1);
       }
     }
-    console.log(devices);
-    const deviceOne = devices[0];
-    const deviceTwo = devices[1];
-    const deviceThree = devices[2];
-    const deviceFour = devices[3];
+
+    // Positional receivers: only devices whose current channel exists in the user's channel list.
+    // This prevents cross-user devices (e.g. a receiver recreated with default permissions
+    // and tuned to another dispatcher's comp channel) from occupying the wrong slot.
+    const userDevices = devices.filter(d => channels.some(c => c.c_name === d.c_name));
+
+    // Detect any devices that were returned by the API but don't belong to this user
+    const unexpectedDevices = devices.filter(
+      d => !userDevices.includes(d) &&
+           d.d_name !== dispatchVideoDeviceOne &&
+           d.d_name !== dispatchVideoDeviceTwo
+    );
+    const configWarning = unexpectedDevices.length > 0
+      ? `Unexpected device(s) detected in your device list: ${unexpectedDevices.map(d => d.d_name).join(', ')}. Contact your administrator.`
+      : null;
+
+    const deviceOne = userDevices[0];
+    const deviceTwo = userDevices[1];
+    const deviceThree = userDevices[2];
+    const deviceFour = userDevices[3];
     const deviceVideoOne = devices.find(
       (d) => d.d_name === dispatchVideoDeviceOne
     );
@@ -176,15 +194,16 @@ class App extends Component {
       const deviceChannel = channels.find(
         (channel) => deviceOne.c_name === channel.c_name
       );
-      console.log(deviceChannel);
 
-      receiverOne = {
-        deviceId: deviceOne.d_id,
-        deviceName: deviceOne.d_name,
-        channelId: deviceChannel.c_id,
-        channelName: deviceOne.c_name,
-        channelDescription: deviceChannel.c_description,
-      };
+      if (deviceChannel) {
+        receiverOne = {
+          deviceId: deviceOne.d_id,
+          deviceName: deviceOne.d_name,
+          channelId: deviceChannel.c_id,
+          channelName: deviceOne.c_name,
+          channelDescription: deviceChannel.c_description,
+        };
+      }
     }
 
     if (deviceTwo) {
@@ -192,13 +211,15 @@ class App extends Component {
         (channel) => deviceTwo.c_name === channel.c_name
       );
 
-      receiverTwo = {
-        deviceId: deviceTwo.d_id,
-        deviceName: deviceTwo.d_name,
-        channelId: deviceChannel.c_id,
-        channelName: deviceTwo.c_name,
-        channelDescription: deviceChannel.c_description,
-      };
+      if (deviceChannel) {
+        receiverTwo = {
+          deviceId: deviceTwo.d_id,
+          deviceName: deviceTwo.d_name,
+          channelId: deviceChannel.c_id,
+          channelName: deviceTwo.c_name,
+          channelDescription: deviceChannel.c_description,
+        };
+      }
     }
 
     // Dispatch 5 only has two receivers
@@ -272,6 +293,7 @@ class App extends Component {
       receiverFour,
       receiverVideoOne,
       receiverVideoTwo,
+      configWarning,
     };
   };
 
@@ -325,6 +347,7 @@ class App extends Component {
       receiverFour,
       receiverVideoOne,
       receiverVideoTwo,
+      configWarning,
     } = this.mapReceivers(devices, channels);
 
     this.setState({
@@ -335,6 +358,7 @@ class App extends Component {
       receiverFour,
       receiverVideoOne,
       receiverVideoTwo,
+      configWarning,
       isLoading: false,
     });
   };
@@ -383,6 +407,7 @@ class App extends Component {
       receiverTwo,
       receiverThree,
       receiverFour,
+      configWarning,
     } = this.mapReceivers(devices, channels);
 
     this.setState({
@@ -390,6 +415,7 @@ class App extends Component {
       receiverTwo,
       receiverThree,
       receiverFour,
+      configWarning,
       isLoading: false,
     });
   };
@@ -424,6 +450,7 @@ class App extends Component {
       receiverTwo,
       receiverThree,
       receiverFour,
+      configWarning,
     } = this.mapReceivers(devices, channels);
 
     this.setState({
@@ -431,6 +458,7 @@ class App extends Component {
       receiverTwo,
       receiverThree,
       receiverFour,
+      configWarning,
       isLoading: false,
     });
   };
@@ -458,6 +486,10 @@ class App extends Component {
     window.location.reload();
   };
 
+  dismissWarning = () => {
+    this.setState({ configWarning: null });
+  };
+
   render() {
     const {
       layout,
@@ -476,6 +508,7 @@ class App extends Component {
       isPresetsModalOpen,
       isLoading,
       error,
+      configWarning,
     } = this.state;
 
     if (error) {
@@ -502,6 +535,12 @@ class App extends Component {
 
     return (
       <div className={styles.app}>
+        {configWarning && (
+          <div className={styles.configWarning}>
+            <span>{configWarning}</span>
+            <button className={styles.configWarningDismiss} onClick={this.dismissWarning}>×</button>
+          </div>
+        )}
         <div className={styles.container}>
           <button
             className={styles.layoutPresetsButton}

@@ -25,6 +25,7 @@ module.exports = function(proxy, allowedHost) {
     // Enable HTTPS if the HTTPS environment variable is set to 'true'
     server: protocol === "https" ? "https" : "http",
     host: host,
+    port: parseInt(process.env.PORT, 10) || 3000,
     client: {
       overlay: false,
       logging: 'none',
