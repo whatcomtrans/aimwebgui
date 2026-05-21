@@ -24,6 +24,7 @@ class App extends Component {
   constructor(props) {
     super(props);
     this.state = {
+      id: null,
       layout: null,
       receiverOne: null,
       receiverTwo: null,
@@ -110,9 +111,10 @@ class App extends Component {
       receiverVideoOne,
       receiverVideoTwo,
       configWarning,
-    } = this.mapReceivers(devices, channels);
+    } = this.mapReceivers(devices, channels, id);
 
     this.setState({
+      id,
       layout,
       devices,
       allDevices,
@@ -148,7 +150,7 @@ class App extends Component {
     this.setState({ isPresetsModalOpen: false });
   };
 
-  mapReceivers = (devices, channels) => {
+  mapReceivers = (devices, channels, id) => {
     //filter down devices list
     //get rid of any devices without a c_name
     let i = devices.length;
@@ -158,25 +160,37 @@ class App extends Component {
       }
     }
 
-    // Positional receivers: only devices whose current channel exists in the user's channel list.
+    // Only include devices whose current channel exists in the user's channel list.
     // This prevents cross-user devices (e.g. a receiver recreated with default permissions
     // and tuned to another dispatcher's comp channel) from occupying the wrong slot.
     const userDevices = devices.filter(d => channels.some(c => c.c_name === d.c_name));
 
-    // Detect any devices that were returned by the API but don't belong to this user
+    // Detect any devices returned by the API that don't belong to this user
     const unexpectedDevices = devices.filter(
       d => !userDevices.includes(d) &&
            d.d_name !== dispatchVideoDeviceOne &&
            d.d_name !== dispatchVideoDeviceTwo
     );
-    const configWarning = unexpectedDevices.length > 0
-      ? `Unexpected device(s) detected in your device list: ${unexpectedDevices.map(d => d.d_name).join(', ')}. Contact your administrator.`
-      : null;
 
-    const deviceOne = userDevices[0];
-    const deviceTwo = userDevices[1];
-    const deviceThree = userDevices[2];
-    const deviceFour = userDevices[3];
+    // Use named lookup per slot so a missing device leaves its slot undefined
+    // rather than causing every subsequent device to shift into the wrong position.
+    const prefix = id.toUpperCase(); // e.g. "d4" -> "D4"
+    const deviceOne   = userDevices.find(d => d.d_name === `${prefix}RX1`);
+    const deviceTwo   = userDevices.find(d => d.d_name === `${prefix}RX2`);
+    const deviceThree = userDevices.find(d => d.d_name === `${prefix}RX3`);
+    const deviceFour  = userDevices.find(d => d.d_name === `${prefix}RX4`);
+
+    // Detect missing expected receivers
+    const expectedNames = [`${prefix}RX1`, `${prefix}RX2`, `${prefix}RX3`, `${prefix}RX4`];
+    const missingDeviceNames = expectedNames.filter(
+      name => !userDevices.some(d => d.d_name === name)
+    );
+
+    const warningEntries = [
+      ...unexpectedDevices.map(d => ({ type: 'unexpected', d_name: d.d_name, d_id: d.d_id })),
+      ...missingDeviceNames.map(name => ({ type: 'missing', d_name: name })),
+    ];
+    const configWarning = warningEntries.length > 0 ? warningEntries : null;
     const deviceVideoOne = devices.find(
       (d) => d.d_name === dispatchVideoDeviceOne
     );
@@ -339,7 +353,7 @@ class App extends Component {
       return;
     }
 
-    const { channels } = this.state;
+    const { channels, id } = this.state;
     const {
       receiverOne,
       receiverTwo,
@@ -348,7 +362,7 @@ class App extends Component {
       receiverVideoOne,
       receiverVideoTwo,
       configWarning,
-    } = this.mapReceivers(devices, channels);
+    } = this.mapReceivers(devices, channels, id);
 
     this.setState({
       devices,
@@ -401,14 +415,14 @@ class App extends Component {
       return;
     }
 
-    const { channels } = this.state;
+    const { channels, id } = this.state;
     const {
       receiverOne,
       receiverTwo,
       receiverThree,
       receiverFour,
       configWarning,
-    } = this.mapReceivers(devices, channels);
+    } = this.mapReceivers(devices, channels, id);
 
     this.setState({
       receiverOne,
@@ -444,14 +458,14 @@ class App extends Component {
       return;
     }
 
-    const { channels } = this.state;
+    const { channels, id } = this.state;
     const {
       receiverOne,
       receiverTwo,
       receiverThree,
       receiverFour,
       configWarning,
-    } = this.mapReceivers(devices, channels);
+    } = this.mapReceivers(devices, channels, id);
 
     this.setState({
       receiverOne,
@@ -537,7 +551,25 @@ class App extends Component {
       <div className={styles.app}>
         {configWarning && (
           <div className={styles.configWarning}>
-            <span>{configWarning}</span>
+            <span>
+              {configWarning.filter(w => w.type === 'unexpected').length > 0 && (
+                <span>
+                  Incorrect permissions on:
+                  {configWarning.filter(w => w.type === 'unexpected').map((d, i) => (
+                    <span key={d.d_id}>{i > 0 ? ',' : ''} <a href={`http://aim.whatcomtrans.net/admin/configure_device.php?d=${d.d_id}`} target="_blank" rel="noopener noreferrer">{d.d_name}</a></span>
+                  ))}
+                  {' '}— open each link, correct user permissions, and save.
+                </span>
+              )}
+              {configWarning.filter(w => w.type === 'unexpected').length > 0 && configWarning.filter(w => w.type === 'missing').length > 0 && '  '}
+              {configWarning.filter(w => w.type === 'missing').length > 0 && (
+                <span>
+                  Missing device(s):{' '}
+                  {configWarning.filter(w => w.type === 'missing').map(d => d.d_name).join(', ')}
+                  {' '}— contact your administrator to restore them in the AIM system.
+                </span>
+              )}
+            </span>
             <button className={styles.configWarningDismiss} onClick={this.dismissWarning}>×</button>
           </div>
         )}
